@@ -3,3 +3,4 @@
 ^data-raw$
 ^installme.R$
 *\.pyc$
+R/quicktest.R

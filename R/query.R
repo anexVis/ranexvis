@@ -1,12 +1,11 @@
 #' getGeneList
 #'
-#' @param db the large experiment of interest: "gtex" is the only option available for now.
-#' @param workflow the processing workflow to obtain normalized RNA expression level, available values are "broad", "toil-rsem", "toil-kallisto"
-#' @param unit the unit for measuring abundance: `tpm` or `fpkm`
+#' @param db the large experiment of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
 #' @param cols a vector of column names to be retrieved: c('HGNC', 'EnsembleID', 'Description'), or NULL to retrieve all columns
 #' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.frame
 #' @export
 #' @import rhdf5
+#' @import jsonlite
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
     get("dbpath")
     output = list()
@@ -20,4 +19,3 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
         return(data.frame(output))
     }
 }
-
