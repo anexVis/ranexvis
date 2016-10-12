@@ -1,9 +1,12 @@
 Package: rglyvis
-Title: Utility functions for querying and computing on biological data, to be called via OpenCPU 
+Title: Utility functions for querying and computing on biological data, to be called via OpenCPU
 Version: 0.0.0.9000
 Authors@R: person("Trang", "Tran", email = "ttdtrang@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends: R (>= 3.3.0)
-License: MIT 
+Imports:
+    jsonlite
+    rhdf5
+License: MIT
 Encoding: UTF-8
 LazyData: true

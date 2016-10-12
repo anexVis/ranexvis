@@ -1,2 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^data-raw$
+^installme.R$
+*\.pyc$
