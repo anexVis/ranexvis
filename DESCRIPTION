@@ -4,9 +4,10 @@ Version: 0.0.0.9000
 Authors@R: person("Trang", "Tran", email = "ttdtrang@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends: R (>= 3.3.0)
-Imports:
-    jsonlite,
-    rhdf5
 License: MIT
 Encoding: UTF-8
-LazyData: true
+LazyData: no
+RoxygenNote: 5.0.1
+Imports: jsonlite,
+    rhdf5,
+    data.table

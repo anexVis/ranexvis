@@ -2,5 +2,5 @@
 ^\.Rproj\.user$
 ^data-raw$
 ^installme.R$
-*\.pyc$
-R/quicktest.R
+^R/quicktest.R
+^R/util.R

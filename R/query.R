@@ -1,21 +1,24 @@
+data(sysdata,envir=environment())
+
+
 #' getGeneList
 #'
-#' @param db the large experiment of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
+#' @param db the data set of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
 #' @param cols a vector of column names to be retrieved: c('HGNC', 'EnsembleID', 'Description'), or NULL to retrieve all columns
-#' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.frame
+#' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.table
 #' @export
-#' @import rhdf5
-#' @import jsonlite
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
-    get("dbpath")
-    output = list()
-    for (column in cols) {
-        output[[column]] = h5read(dbpath[[db]],name = paste("/genes",column, sep="/"))
+    path2dataset = paste("/genes", cols[1], sep="/")
+    output = data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
+    for (column in cols[2:length(cols)]) {
+        path2dataset = paste("/genes", column, sep="/")
+        output[[column]] = as.character(rhdf5::h5read(dbpath[[db]], path2dataset))
     }
 
+    names(output) = cols
     if (expect == 'json') {
-        return(toJSON(data.frame(output)))
+        return(jsonlite::toJSON(output))
     } else {
-        return(data.frame(output))
+        return(output)
     }
 }
