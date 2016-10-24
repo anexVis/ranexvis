@@ -16,9 +16,33 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
     }
 
     names(output) = cols
+    rhdf5::H5close()
     if (expect == 'json') {
         return(jsonlite::toJSON(output))
     } else {
         return(output)
     }
+}
+
+#' getSampleGroupingList
+#'
+#' @param db the data set of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
+#' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
+#' @export
+getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
+    path2dataset = paste("/metadata/sample", cols[1], sep="/")
+    # TODO not sure how to read only one column. That would be more efficient
+    allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
+    output = list(grouping = unique(allmeta[[grouping]]))
+    rhdf5::H5close()
+    if (expect == 'json') {
+        return(jsonlite::toJSON(output))
+    } else {
+        return(output)
+    }
+}
+
+#' getSampleMetadata
+#'
+getSampleMetadata <- function(db="gtex", cols="NULL", expect="json") {
 }
