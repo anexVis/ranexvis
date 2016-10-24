@@ -30,7 +30,7 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
 #' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
 #' @export
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
-    path2dataset = paste("/metadata/sample", cols[1], sep="/")
+    path2dataset = paste("/metadata/sample", grouping, sep="/")
     # TODO not sure how to read only one column. That would be more efficient
     allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
     output = list(grouping = unique(allmeta[[grouping]]))
