@@ -9,14 +9,17 @@ data(sysdata,envir=environment())
 #' @export
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
     path2dataset = paste("/genes", cols[1], sep="/")
-    output = data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
+    output = tryCatch({
+        data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
+    }, error = function(e) {
+        print(paste("Trying to read dataset", path2dataset, "from h5 file",dbpath[[db]]))
+        print(e)
+    })
     for (column in cols[2:length(cols)]) {
         path2dataset = paste("/genes", column, sep="/")
         output[[column]] = as.character(rhdf5::h5read(dbpath[[db]], path2dataset))
     }
-
     names(output) = cols
-    rhdf5::H5close()
     if (expect == 'json') {
         return(jsonlite::toJSON(output))
     } else {
@@ -30,19 +33,14 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
 #' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
 #' @export
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
-    path2dataset = paste("/metadata/sample", grouping, sep="/")
     # TODO not sure how to read only one column. That would be more efficient
+    path2dataset = paste("/metadata/sample")
     allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
-    output = list(grouping = unique(allmeta[[grouping]]))
-    rhdf5::H5close()
+    output = list()
+    output[[grouping]] = unique(allmeta[[grouping]])
     if (expect == 'json') {
-        return(jsonlite::toJSON(output))
+        return(jsonlite::toJSON(data.frame(output)))
     } else {
-        return(output)
+        return(data.frame(output))
     }
-}
-
-#' getSampleMetadata
-#'
-getSampleMetadata <- function(db="gtex", cols="NULL", expect="json") {
 }
