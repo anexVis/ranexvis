@@ -9,7 +9,8 @@ coexpression <- function(x, method="pearson",...) {
     switch( method,
             "pearson" = cor(x, method="pearson"),
             "spearman" = cor(x, method="spearman"),
-            "mi" = NULL)
+            "mi" = NULL,
+            cor(x, method="pearson"))
     return(corrMatrix)
 }
 
