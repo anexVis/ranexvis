@@ -14,6 +14,11 @@ coexpression <- function(x, method="pearson",...) {
     return(corrMatrix)
 }
 
-heatmap.visdata <- function(x, ...) {
+#' Return ready-to-use json data for plotting of heatmap, including a matrix, a row dendrogram, and a column dendrogram
+#' This is a convenient wrapping of rglyvis::coexpression and rvislib::heatmap.generic
+#'
+coexpression.heatmap <- function(x, rowNodeType="row", colNodeType="col",...) {
     corrMatrix = coexpression(x, ...)
+    return(rvislib::heatmap.generic(corrMatrix,rowNodeType, colNodeType))
 }
+
