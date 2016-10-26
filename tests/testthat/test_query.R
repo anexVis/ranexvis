@@ -36,7 +36,7 @@ test_that("Retrieval of gene expression matrix.", {
     # expect_error()   # when db/processing/unit are not found
 
     expr1 = getGeneExpressionMatrix(genes = selectedEnsembls,
-                                   sampleGroups=c("Brain"),
+                                   sampleGroups="Brain",
                                    sampleGrouping="SMTS",
                                    db = "gtex",
                                    processing = "toil-rsem",

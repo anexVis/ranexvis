@@ -10,5 +10,6 @@ LazyData: no
 RoxygenNote: 5.0.1
 Imports: jsonlite,
     rhdf5,
-    data.table
+    data.table,
+    rvislib
 Suggests: testthat
