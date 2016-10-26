@@ -1,5 +1,20 @@
 data(sysdata,envir=environment())
 
+# Utility function to read a 1D array correctly from HDF5 file
+readCharacterArray <- function(file, path, colname=NULL) {
+    charray = as.character(rhdf5::h5read(file, path))
+    if (is.null(colname)) {
+        return(charray)
+    } else {
+        output = list()
+        output[[colname]] = charray
+        return(data.frame(output))
+    }
+}
+
+removeEnsemblVersion <- function(x) {
+    return(gsub("(ENSG\\d+)\\.(\\d+)", "\\1", x))
+}
 
 #' getGeneList
 #'
@@ -9,11 +24,14 @@ data(sysdata,envir=environment())
 #' @export
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
     path2dataset = paste("/genes", cols[1], sep="/")
+    rhdf5::H5close()    # does it affect h5 object handles of other process/user?
     output = tryCatch({
         data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
     }, error = function(e) {
         print(paste("Trying to read dataset", path2dataset, "from h5 file",dbpath[[db]]))
         print(e)
+    }, warning = function(w) {
+        # just ignore
     })
     for (column in cols[2:length(cols)]) {
         path2dataset = paste("/genes", column, sep="/")
@@ -35,6 +53,7 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
     # TODO not sure how to read only one column. That would be more efficient
     path2dataset = paste("/metadata/sample")
+    rhdf5::H5close()    # does it affect h5 object handles of other process/user?
     allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
     output = list()
     output[[grouping]] = unique(allmeta[[grouping]])
@@ -43,4 +62,58 @@ getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
     } else {
         return(data.frame(output))
     }
+}
+
+#' getSampleMetadata
+#'
+#' @param db
+#' @param cols selected columns in metadata. Default value: c("SAMPID", "SMTS"). Available columns:
+#' "SAMPID"     "SMATSSCR"   "SMNABTCH"   "SMNABTCHT"  "SMNABTCHD"  "SMGEBTCH"   "SMCENTER"   "SMPTHNTS"   "SMRIN"
+#' "SMTS"       "SMTSD"      "SMUBRID"    "SMTSPAX"    "SMTSTPTREF" "SMAFRZE"
+#' @param expect output format. Available values: 'json', 'datatable'
+#' @export
+getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json") {
+    path2dataset = paste("/metadata/sample")
+    rhdf5::H5close()
+    allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
+    output = allmeta[cols]
+    returnData = switch (expect,
+           'json' = jsonlite::toJSON(output),
+           'datatable' = output,
+           output
+            )
+    return(returnData)
+}
+
+getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm") {
+    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
+    path2dataset = paste("/", processing, "/gene/", unit, sep="")
+    path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
+    path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
+    rhdf5::H5close()
+    geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
+    sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId), sampleMeta, by = "SAMPID", all.x=TRUE)
+    colidx = which(geneList %in% removeEnsemblVersion(genes))
+    rowidx = which(sampleList[[sampleGrouping]] %in% sampleGroups)
+    # The subsetting of HDF5 is puzzling!
+    # row-col seem to be switched between R and HDFView
+    tryCatch ({
+        exprMatrix = t(data.table::data.table(rhdf5::h5read(dbpath[[db]],
+                                                            path2dataset,
+                                                            index=list(rowidx,colidx))))
+
+    }, error = function(e) {
+        print("genes: ")
+        print(genes)
+        print("sampleGroups: ")
+        print(sampleGroups)
+        print("Rowidx: ")
+        print(rowidx)
+        print("Colidx: ")
+        print(colidx)
+        str(geneList)
+        str(sampleList)
+        print(e)
+    })
+    return(exprMatrix)
 }
