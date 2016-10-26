@@ -1,6 +1,10 @@
 data(sysdata,envir=environment())
 
-# Utility function to read a 1D array correctly from HDF5 file
+#' Utility function to read a 1D array correctly from HDF5 file
+#'
+#' @param file path to HDF5 file
+#' @param path path to the dataset within the HDF5
+#' @param colname if NULL, this will return a character vector. Otherwise return a data.frame with 1 column named `colname`.
 readCharacterArray <- function(file, path, colname=NULL) {
     charray = as.character(rhdf5::h5read(file, path))
     if (is.null(colname)) {
@@ -85,6 +89,8 @@ getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json"
     return(returnData)
 }
 
+#' Return a samples x genes expression matrix for correlation calculation
+#'
 getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm") {
     sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
@@ -92,28 +98,22 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
     rhdf5::H5close()
     geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
-    sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId), sampleMeta, by = "SAMPID", all.x=TRUE)
+    sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId, colname = "SAMPID"), sampleMeta, by = "SAMPID", all.x=TRUE)
     colidx = which(geneList %in% removeEnsemblVersion(genes))
     rowidx = which(sampleList[[sampleGrouping]] %in% sampleGroups)
+    if (length(colidx) == 0 || length(rowidx) == 0) {
+        message("No matching record found.")
+        return(NULL)
+    }
+
     # The subsetting of HDF5 is puzzling!
     # row-col seem to be switched between R and HDFView
     tryCatch ({
-        exprMatrix = t(data.table::data.table(rhdf5::h5read(dbpath[[db]],
+        exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
                                                             path2dataset,
-                                                            index=list(rowidx,colidx))))
-
+                                                            index=list(rowidx,colidx)))
+        return(exprMatrix)
     }, error = function(e) {
-        print("genes: ")
-        print(genes)
-        print("sampleGroups: ")
-        print(sampleGroups)
-        print("Rowidx: ")
-        print(rowidx)
-        print("Colidx: ")
-        print(colidx)
-        str(geneList)
-        str(sampleList)
         print(e)
     })
-    return(exprMatrix)
 }
