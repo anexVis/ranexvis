@@ -1,4 +1,6 @@
+library(futile.logger)
 context("Data retrieval")
+flog.appender(appender.file("test_query.log"), name="log")
 
 test_that("Database path is set correctly.", {
     expect_equal(dbpath[['gtex']], '/var/www/html/data/GTEx_V6.h5')
@@ -43,6 +45,9 @@ test_that("Retrieval of gene expression matrix.", {
                                    unit="tpm"
                                    )
     expect_equal(ncol(expr1),2)
+    expect_equal(colnames(expr1),selectedEnsembls)
+    flog.info("Expression of 2 genes in the first 10 Brain samples:", expr1[1:10,], name='log', capture=TRUE)
+
 
     expr2 = getGeneExpressionMatrix(genes = selectedEnsembls,
                                    sampleGroups=c("Brain", "Liver"),

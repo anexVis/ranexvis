@@ -112,6 +112,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
         exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
                                                             path2dataset,
                                                             index=list(rowidx,colidx)))
+        colnames(exprMatrix) = genes
         return(exprMatrix)
     }, error = function(e) {
         print(e)

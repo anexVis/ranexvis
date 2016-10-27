@@ -19,6 +19,7 @@ coexpression <- function(x, method="pearson",...) {
 #'
 coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,processing, unit,...) {
     exprMatrix = getGeneExpressionMatrix(genes, sampleGroups, sampleGrouping, db, processing, unit)
+    colnames(exprMatrix) = genes
     corrMatrix = coexpression(exprMatrix, ...)
     return(rvislib::heatmap.adjacency(corrMatrix))
 }
