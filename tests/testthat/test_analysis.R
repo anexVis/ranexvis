@@ -23,7 +23,7 @@ test_that("Co-expression calculation.", {
 
 test_that("Heatmap data generator", {
     hmdata = coexpression.heatmap(selectedEnsembls, "Brain",sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm")
-    expect_equal(length(hmdata), 3)
+    expect_equal(length(hmdata), 2)
     expect_equal(class(hmdata[0]), "character")
     flog.info("Heatmap data returned", hmdata, name="log", capture=TRUE)
 })
