@@ -32,8 +32,6 @@ test_that("Load sample metadata", {
 })
 
 test_that("Load expression data", {
-
-
     ### load a subset
     samples = c("GTEX-UTHO-1226-SM-3GAEE",
                 "GTEX-146FH-1726-SM-5QGQ2",
@@ -57,11 +55,10 @@ test_that("Load expression data", {
     start = proc.time()
     loadExpressionData(genes, samples)
     runtime = proc.time() - start
-    expect_equal(ncol(ctner$expressionMatrix), length(genes))
-    expect_equal(nrow(ctner$expressionMatrix), length(samples))
+    expect_equal(colnames(ctner$expressionMatrix), genes)
+    expect_equal(rownames(ctner$expressionMatrix), samples)
     flog.info("loadExpressionMatrix subset in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("container$expressionMatrix:", ctner$expressionMatrix, name="log", capture=TRUE)
-
 
     ### load everything, will take some time
     start = proc.time()
@@ -70,7 +67,7 @@ test_that("Load expression data", {
     expect_true(ncol(ctner$expressionMatrix) > 1)
     expect_true(nrow(ctner$expressionMatrix) > 1)
     flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$expressionMatrix:", ctner$expressionMatrix, name="log", capture=TRUE)
+    flog.info("container$expressionMatrix:", str(ctner$expressionMatrix), name="log", capture=TRUE)
 })
 
 
