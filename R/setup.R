@@ -32,30 +32,41 @@ loadSampleMetadata <- function(db='gtex', cols=NULL) {
     invisible(assign("sampleMetadata", output, envir=container))
 }
 
-loadExpressionData <- function(db = "gtex", processing="toil-rsem", unit="tpm") {
-    # sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
-    # path2dataset = paste("/", processing, "/gene/", unit, sep="")
-    # path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
-    # path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
-    # rhdf5::H5close()
-    # geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
-    # sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId, colname = "SAMPID"), sampleMeta, by = "SAMPID", all.x=TRUE)
-    # colidx = which(geneList %in% removeEnsemblVersion(genes))
-    # rowidx = which(sampleList[[sampleGrouping]] %in% sampleGroups)
-    # if (length(colidx) == 0 || length(rowidx) == 0) {
-    #     message("No matching record found.")
-    #     return(NULL)
-    # }
-    #
-    # # The subsetting of HDF5 is puzzling!
-    # # row-col seem to be switched between R and HDFView
-    # tryCatch ({
-    #     exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
-    #                                                         path2dataset,
-    #                                                         index=list(rowidx,colidx)))
-    #     colnames(exprMatrix) = genes
-    #     return(exprMatrix)
-    # }, error = function(e) {
-    #     print(e)
-    # })
+loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing="toil-rsem", unit="tpm") {
+    path2dataset = paste("/", processing, "/gene/", unit, sep="")
+    path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
+    path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
+    rhdf5::H5close()
+    geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
+    sampleList = readCharacterArray(dbpath[[db]],path2sampleId)
+
+    colidx = NULL
+    rowidx = NULL
+    if (!is.null(genes)) {
+        colidx = which(geneList %in% removeEnsemblVersion(genes))
+        if (length(colidx) == 0) {
+            message("No matching record found.")
+            invisible(assign("expressionMatrix", NULL,envir = container))
+        }
+    }
+    if (!is.null(samples)) {
+        rowidx = which(sampleList %in% samples)
+        if (length(rowidx) == 0) {
+            message("No matching record found.")
+            invisible(assign("expressionMatrix", NULL,envir = container))
+        }
+    }
+
+    # The subsetting of HDF5 is puzzling!
+    # row-col seem to be switched between R and HDFView
+    tryCatch ({
+        exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
+                                                            path2dataset,
+                                                            index=list(rowidx,colidx)))
+        colnames(exprMatrix) = genes
+        rownames(exprMatrix) = samples
+        invisible(assign("expressionMatrix", exprMatrix,envir = container))
+    }, error = function(e) {
+        print(e)
+    })
 }
