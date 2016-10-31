@@ -10,6 +10,7 @@ test_that("Retrieval of gene list.", {
     # expect_warning(genelist = getGeneList(expect='df'),'HDF5 on bit64conversion')
     # expect_warning(jsonlist = getGeneList(db='gtex', expect='json'), 'HDF5 on bit64conversion')
     genelist = getGeneList("gtex", c("EnsemblID", "HGNC"), expect="df")
+    expect_equal(names(genelist) , c("EnsemblID", "HGNC"))
 })
 
 test_that("Retrieval of sample grouping list.", {
