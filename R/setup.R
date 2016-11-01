@@ -7,7 +7,7 @@ container = new.env(parent= emptyenv())
 setup <- function() {
     loadGeneData()
     loadSampleMetadata()
-    loadExpressionData()
+    loadExpressionData() # load everything will take about 30sec
 
 }
 
@@ -46,14 +46,14 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
         colidx = which(geneList %in% removeEnsemblVersion(genes))
         if (length(colidx) == 0) {
             message("No matching record found.")
-            invisible(assign("expressionMatrix", NULL,envir = container))
+            invisible(assign(paste0(path2dataset, "expressionMatrix"), NULL,envir = container))
         }
     }
     if (!is.null(samples)) {
         rowidx = which(sampleList %in% samples)
         if (length(rowidx) == 0) {
             message("No matching record found.")
-            invisible(assign("expressionMatrix", NULL,envir = container))
+            invisible(assign(paste0(path2dataset,"/expressionMatrix"), NULL,envir = container))
         }
     }
 
@@ -63,9 +63,10 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
         exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
                                                             path2dataset,
                                                             index=list(rowidx,colidx)))
-        colnames(exprMatrix) = genes
-        rownames(exprMatrix) = samples
-        invisible(assign("expressionMatrix", exprMatrix,envir = container))
+        # colnames(exprMatrix) = genes
+        # rownames(exprMatrix) = samples
+        print(paste0(path2dataset, "/expressionMatrix"))
+        invisible(assign(paste0(path2dataset, "/expressionMatrix"), exprMatrix,envir = container))
     }, error = function(e) {
         print(e)
     })

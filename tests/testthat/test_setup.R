@@ -32,6 +32,11 @@ test_that("Load sample metadata", {
 })
 
 test_that("Load expression data", {
+    db = "gtex"
+    processing = "broad"
+    unit = "fpkm"
+    path2dataset = paste0( "/", paste(processing, "gene", unit, sep="/"), "/expressionMatrix")
+
     ### load a subset
     samples = c("GTEX-UTHO-1226-SM-3GAEE",
                 "GTEX-146FH-1726-SM-5QGQ2",
@@ -53,21 +58,24 @@ test_that("Load expression data", {
         "ENSG00000078237.5")
 
     start = proc.time()
-    loadExpressionData(genes, samples)
+    loadExpressionData(genes, samples,db = db, processing = processing, unit = unit)
     runtime = proc.time() - start
-    expect_equal(colnames(ctner$expressionMatrix), genes)
-    expect_equal(rownames(ctner$expressionMatrix), samples)
+    flog.info("ls(container): ", ls(ctner), name="log", capture=TRUE)
+    m = get(path2dataset, envir = ctner)
+    expect_equal(colnames(m), genes)
+    expect_equal(rownames(m), samples)
     flog.info("loadExpressionMatrix subset in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$expressionMatrix:", ctner$expressionMatrix, name="log", capture=TRUE)
+    flog.info("container$expressionMatrix:", m, name="log", capture=TRUE)
 
     ### load everything, will take some time
-    start = proc.time()
-    loadExpressionData()
-    runtime = proc.time() - start
-    expect_true(ncol(ctner$expressionMatrix) > 1)
-    expect_true(nrow(ctner$expressionMatrix) > 1)
-    flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$expressionMatrix:", str(ctner$expressionMatrix), name="log", capture=TRUE)
+    # start = proc.time()
+    # loadExpressionData(db=db, processing = processing, unit = unit)
+    # runtime = proc.time() - start
+    # m = get("")
+    # expect_true(ncol(ctner$expressionMatrix) > 1)
+    # expect_true(nrow(ctner$expressionMatrix) > 1)
+    # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
+    # flog.info("container$expressionMatrix:", str(ctner$expressionMatrix), name="log", capture=TRUE)
 })
 
 
