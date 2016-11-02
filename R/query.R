@@ -1,4 +1,5 @@
 data(sysdata,envir=environment())
+ctner = get("container")
 
 #' getGeneList
 #'
@@ -7,21 +8,7 @@ data(sysdata,envir=environment())
 #' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.table
 #' @export
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
-    path2dataset = paste("/genes", cols[1], sep="/")
-    rhdf5::H5close()    # does it affect h5 object handles of other process/user?
-    output = tryCatch({
-        data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
-    }, error = function(e) {
-        print(paste("Trying to read dataset", path2dataset, "from h5 file",dbpath[[db]]))
-        print(e)
-    }, warning = function(w) {
-        # just ignore
-    })
-    for (column in cols[2:length(cols)]) {
-        path2dataset = paste("/genes", column, sep="/")
-        output[[column]] = as.character(rhdf5::h5read(dbpath[[db]], path2dataset))
-    }
-    names(output) = cols
+    output = get("geneList", envir = container)
     if (expect == 'json') {
         return(jsonlite::toJSON(output))
     } else {

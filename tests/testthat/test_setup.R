@@ -2,7 +2,7 @@ library(futile.logger)
 flog.appender(appender.file("test_setup.log"), name="log")
 
 context("Setting up")
-ctner = get("container")
+ctner = get("container",inherits=FALSE)
 
 test_that("Load gene list", {
     fields = c("EnsemblID", "HGNC")

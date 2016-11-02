@@ -1,6 +1,6 @@
 data(sysdata,envir=environment())
 
-container = new.env(parent= emptyenv())
+# container = new.env(parent= environment())
 
 #' Load several data sets into the memory
 #'

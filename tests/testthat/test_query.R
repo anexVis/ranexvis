@@ -2,6 +2,10 @@ library(futile.logger)
 context("Data retrieval")
 flog.appender(appender.file("test_query.log"), name="log")
 
+# Need to set up before querying
+setup()
+container = get("container")
+
 test_that("Database path is set correctly.", {
     expect_equal(dbpath[['gtex']], '/var/www/html/data/GTEx_V6.h5')
 })

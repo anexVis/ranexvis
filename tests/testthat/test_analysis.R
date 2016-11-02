@@ -3,7 +3,8 @@ library(futile.logger)
 
 flog.appender(appender.file("test_analysis.log"), 'log')
 context("Analysis methods")
-selectedEnsembls = c("ENSG00000176022.3", "ENSG00000027847.9", "ENSG00000002587.5", "ENSG00000125430.4") # B3GALT6, B4GALT7
+selectedEnsembls = c("ENSG00000176022.3", "ENSG00000027847.9", "ENSG00000002587.5", "ENSG00000125430.4")
+# B3GALT6, B4GALT7
     expr = getGeneExpressionMatrix(genes = selectedEnsembls,
                                    sampleGroups=c("Brain"),
                                    sampleGrouping="SMTS",
