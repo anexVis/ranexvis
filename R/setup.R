@@ -36,7 +36,9 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
     path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
     path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
     rhdf5::H5close()
-    geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
+    # be careful about different version of gencode in each dataset
+    # the query usually does not care about specific version of an Ensembl ID
+    geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId))
     sampleList = readCharacterArray(dbpath[[db]],path2sampleId)
 
     colidx = NULL
@@ -46,7 +48,10 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
         if (length(colidx) == 0) {
             message("No matching record found.")
             invisible(assign(paste0(path2dataset, "expressionMatrix"), NULL,envir = ctner))
+        } else if (length(colidx) < length(genes)) {
+            message(paste("Only", length(colidx), "in", length(genes), "are matched."))
         }
+
     }
     if (!is.null(samples)) {
         rowidx = which(sampleList %in% samples)
@@ -55,16 +60,15 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
             invisible(assign(paste0(path2dataset,"/expressionMatrix"), NULL,envir = ctner))
         }
     }
-
+c
     # The subsetting of HDF5 is puzzling!
     # row-col seem to be switched between R and HDFView
     tryCatch ({
         exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
                                                             path2dataset,
                                                             index=list(rowidx,colidx)))
-        # colnames(exprMatrix) = genes
-        # rownames(exprMatrix) = samples
-        print(paste0(path2dataset, "/expressionMatrix"))
+        colnames(exprMatrix) = geneList[geneList %in% removeEnsemblVersion(genes)]
+        rownames(exprMatrix) = sampleList[sampleList %in% samples]
         invisible(assign(paste0(path2dataset, "/expressionMatrix"), exprMatrix,envir = ctner))
     }, error = function(e) {
         print(e)

@@ -30,12 +30,8 @@ test_that("Load sample metadata", {
 })
 
 test_that("Load expression data", {
-    db = "gtex"
-    processing = "broad"
-    unit = "fpkm"
-    path2dataset = paste0( "/", paste(processing, "gene", unit, sep="/"), "/expressionMatrix")
 
-    ### load a subset
+    ### define the subset
     samples = c("GTEX-UTHO-1226-SM-3GAEE",
                 "GTEX-146FH-1726-SM-5QGQ2",
                 "GTEX-QDT8-0126-SM-48TZ1",
@@ -47,23 +43,42 @@ test_that("Load expression data", {
                 "GTEX-RU1J-0426-SM-46MUK",
                 "GTEX-1212Z-0226-SM-59HLF",
                 "GTEX-11DZ1-2026-SM-5A5KG")
-    genes = c(
+    genes.wVersion = c(
         "ENSG00000242268.2",
         "ENSG00000259041.1",
         "ENSG00000270112.3",
         "ENSG00000167578.16",
         "ENSG00000278814.1",
         "ENSG00000078237.5")
+    genes = c(
+        "ENSG00000242268",
+        "ENSG00000259041",
+        "ENSG00000270112",
+        "ENSG00000167578",
+        "ENSG00000278814",
+        "ENSG00000078237")
 
+    ### Load toil-rsem processed-data
     start = proc.time()
-    loadExpressionData(genes, samples,db = db, processing = processing, unit = unit)
+    loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", ctner=container)
     runtime = proc.time() - start
+    m2 = get("/toil-rsem/gene/tpm/expressionMatrix", envir = container)
+    expect_equal(colnames(m2), genes)
+    expect_equal(rownames(m2), samples)
+    flog.info("Load toil-rsem data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
-    m = get(path2dataset, envir = container)
-    expect_equal(colnames(m), genes)
-    expect_equal(rownames(m), samples)
-    flog.info("loadExpressionMatrix subset in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$expressionMatrix:", m, name="log", capture=TRUE)
+    flog.info("expression matrix:", m2, name="log", capture=TRUE)
+
+    ### Load broad-processed data
+    start = proc.time()
+    loadExpressionData(genes, samples,db = "gtex", processing = "broad", unit = "fpkm", ctner = container)
+    runtime = proc.time() - start
+    m = get("/broad/gene/fpkm/expressionMatrix", envir = container)
+    flog.info("Load broad data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
+    flog.info("expression matrix:", m, name="log", capture=TRUE)
+
+
 
     ### load everything, will take some time
     # start = proc.time()
