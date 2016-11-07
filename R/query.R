@@ -56,16 +56,13 @@ getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json"
 #' Return a samples x genes expression matrix for correlation calculation
 #'
 getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm") {
-    path2dataset = paste("/", processing, "/gene/", unit, sep="")
-    path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
-    path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
     sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
 
-    # geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
-    # sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId, colname = "SAMPID"), sampleMeta, by = "SAMPID", all.x=TRUE)
-
+    path2dataset = paste("/", processing, "/gene/", unit, sep="")
     fullExprMatrix =  get(paste(path2dataset, "expressionMatrix", sep="/"), envir = container)
+
     genesInMatrix = colnames(fullExprMatrix)
+
     samplesInMatrix= data.table::data.table(rownames(fullExprMatrix))
     names(samplesInMatrix) = c("SAMPID")
     sampleList = merge(samplesInMatrix, sampleMeta, by = "SAMPID", all.x=TRUE)
@@ -77,8 +74,6 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
         return(NULL)
     }
 
-    # The subsetting of HDF5 is puzzling!
-    # row-col seem to be switched between R and HDFView
     tryCatch ({
         exprMatrix = fullExprMatrix[rowidx,colidx]
         return(exprMatrix)

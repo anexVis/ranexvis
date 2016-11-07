@@ -72,6 +72,7 @@ test_that("Retrieval of gene expression matrix.", {
                                   unit="tpm"
                                   )
    expect_equal(ncol(expr2),2)
+   expect_equal(colnames(expr1), colnames(expr2))
    expect_true(nrow(expr1) < nrow(expr2))
    expect_equal(nrow(expr1), 1146)  # 1146 brain samples
    expect_equal(cor(expr1,method="pearson")[1,1], 1)
