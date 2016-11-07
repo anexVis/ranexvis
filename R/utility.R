@@ -17,3 +17,19 @@ readCharacterArray <- function(file, path, colname=NULL) {
 removeEnsemblVersion <- function(x) {
     return(gsub("(ENSG\\d+)\\.(\\d+)", "\\1", x))
 }
+
+makeUniqueNames <- function(x) {
+    count = table(x)
+    renamed = x
+    j = 0
+    for (i in 1:length(x)) {
+        xi = x[i]
+        if (count[xi] == 1) next
+        else {
+            if (j == count[xi]) j = 0
+            j = j+1
+            renamed[i] = (paste(xi, j, sep="."))
+        }
+    }
+    return(renamed)
+}

@@ -1,5 +1,7 @@
+# This will make available
+# (list) dbpath
+# (environment) container
 data(sysdata,envir=environment())
-ctner = get("container")
 
 #' getGeneList
 #'
@@ -22,10 +24,7 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json') {
 #' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
 #' @export
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
-    # TODO not sure how to read only one column. That would be more efficient
-    path2dataset = paste("/metadata/sample")
-    rhdf5::H5close()    # does it affect h5 object handles of other process/user?
-    allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
+    allmeta = get("sampleMetadata", envir=container)
     output = list()
     output[[grouping]] = unique(allmeta[[grouping]])
     if (expect == 'json') {
@@ -44,9 +43,7 @@ getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json') {
 #' @param expect output format. Available values: 'json', 'datatable'
 #' @export
 getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json") {
-    path2dataset = paste("/metadata/sample")
-    rhdf5::H5close()
-    allmeta = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2dataset))
+    allmeta = get("sampleMetadata", envir=container)
     output = allmeta[cols]
     returnData = switch (expect,
            'json' = jsonlite::toJSON(output),
@@ -59,14 +56,21 @@ getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json"
 #' Return a samples x genes expression matrix for correlation calculation
 #'
 getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm") {
-    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
     path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
     path2sampleId = paste("/", processing, "/gene/SampleID", sep="")
-    rhdf5::H5close()
-    geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
-    sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId, colname = "SAMPID"), sampleMeta, by = "SAMPID", all.x=TRUE)
-    colidx = which(geneList %in% removeEnsemblVersion(genes))
+    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable")
+
+    # geneList = removeEnsemblVersion(readCharacterArray(dbpath[[db]], path2geneId)) # be careful about different version of gencode in each dataset
+    # sampleList = merge(readCharacterArray(dbpath[[db]],path2sampleId, colname = "SAMPID"), sampleMeta, by = "SAMPID", all.x=TRUE)
+
+    fullExprMatrix =  get(paste(path2dataset, "expressionMatrix", sep="/"), envir = container)
+    genesInMatrix = colnames(fullExprMatrix)
+    samplesInMatrix= data.table::data.table(rownames(fullExprMatrix))
+    names(samplesInMatrix) = c("SAMPID")
+    sampleList = merge(samplesInMatrix, sampleMeta, by = "SAMPID", all.x=TRUE)
+
+    colidx = which(genesInMatrix %in% removeEnsemblVersion(genes))
     rowidx = which(sampleList[[sampleGrouping]] %in% sampleGroups)
     if (length(colidx) == 0 || length(rowidx) == 0) {
         message("No matching record found.")
@@ -76,10 +80,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     # The subsetting of HDF5 is puzzling!
     # row-col seem to be switched between R and HDFView
     tryCatch ({
-        exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
-                                                            path2dataset,
-                                                            index=list(rowidx,colidx)))
-        colnames(exprMatrix) = genes
+        exprMatrix = fullExprMatrix[rowidx,colidx]
         return(exprMatrix)
     }, error = function(e) {
         print(e)

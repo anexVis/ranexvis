@@ -5,8 +5,8 @@ data(sysdata,envir=environment())
 #'
 setup <- function() {
     loadGeneData(ctner=container)
-    loadSampleMetadata()
-    loadExpressionData() # load everything will take about 30sec
+    loadSampleMetadata(ctner=container)
+    loadExpressionData(ctner=container) # load everything will take about 30sec
 
 }
 
@@ -47,7 +47,7 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
         colidx = which(geneList %in% removeEnsemblVersion(genes))
         if (length(colidx) == 0) {
             message("No matching record found.")
-            invisible(assign(paste0(path2dataset, "expressionMatrix"), NULL,envir = ctner))
+            invisible(assign(paste0(path2dataset, "/expressionMatrix"), NULL,envir = ctner))
         } else if (length(colidx) < length(genes)) {
             message(paste("Only", length(colidx), "in", length(genes), "are matched."))
         }
@@ -60,15 +60,20 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
             invisible(assign(paste0(path2dataset,"/expressionMatrix"), NULL,envir = ctner))
         }
     }
-c
+
     # The subsetting of HDF5 is puzzling!
     # row-col seem to be switched between R and HDFView
     tryCatch ({
         exprMatrix = data.table::data.table(rhdf5::h5read(dbpath[[db]],
                                                             path2dataset,
                                                             index=list(rowidx,colidx)))
-        colnames(exprMatrix) = geneList[geneList %in% removeEnsemblVersion(genes)]
-        rownames(exprMatrix) = sampleList[sampleList %in% samples]
+        if (!is.null(genes)) colnames(exprMatrix) = geneList[geneList %in% removeEnsemblVersion(genes)]
+        else colnames(exprMatrix) = geneList
+
+        if (!is.null(samples)) rownames(exprMatrix) = sampleList[sampleList %in% samples]
+        else
+            rownames(exprMatrix) = makeUniqueNames(sampleList)
+
         invisible(assign(paste0(path2dataset, "/expressionMatrix"), exprMatrix,envir = ctner))
     }, error = function(e) {
         print(e)
