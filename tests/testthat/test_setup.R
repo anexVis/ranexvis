@@ -2,15 +2,13 @@ library(futile.logger)
 flog.appender(appender.file("test_setup.log"), name="log")
 
 context("Setting up")
-ctner = get("container",inherits=FALSE)
 
 test_that("Load gene list", {
     fields = c("EnsemblID", "HGNC")
     start = proc.time()
     loadGeneData(cols=fields)
     runtime = proc.time() - start
-    # ctner = get("container")
-    gData = ctner$geneList
+    gData = container$geneList
     expect_equal(names(gData), fields)
     flog.info("loadGeneList in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("container$geneList: ", gData, name="log", capture=TRUE)
@@ -21,14 +19,14 @@ test_that("Load sample metadata", {
     start = proc.time()
     loadSampleMetadata()
     runtime = proc.time() - start
-    expect_equal(names(ctner$sampleMetadata)[1], 'SAMPID')
+    expect_equal(names(container$sampleMetadata)[1], 'SAMPID')
     flog.info("loadSampleMetadata in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$sampleMetadata:", ctner$sampleMetadata, name="log", capture=TRUE)
+    flog.info("container$sampleMetadata:", container$sampleMetadata, name="log", capture=TRUE)
 
     # load again, only selected columns
     fields = c("SAMPID", "SMTS", "SMTSD")
     loadSampleMetadata(cols=fields)
-    expect_equal(names(ctner$sampleMetadata), fields)
+    expect_equal(names(container$sampleMetadata), fields)
 })
 
 test_that("Load expression data", {
@@ -60,8 +58,8 @@ test_that("Load expression data", {
     start = proc.time()
     loadExpressionData(genes, samples,db = db, processing = processing, unit = unit)
     runtime = proc.time() - start
-    flog.info("ls(container): ", ls(ctner), name="log", capture=TRUE)
-    m = get(path2dataset, envir = ctner)
+    flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
+    m = get(path2dataset, envir = container)
     expect_equal(colnames(m), genes)
     expect_equal(rownames(m), samples)
     flog.info("loadExpressionMatrix subset in: %6.4f seconds.", runtime['elapsed'], name="log")
@@ -72,10 +70,10 @@ test_that("Load expression data", {
     # loadExpressionData(db=db, processing = processing, unit = unit)
     # runtime = proc.time() - start
     # m = get("")
-    # expect_true(ncol(ctner$expressionMatrix) > 1)
-    # expect_true(nrow(ctner$expressionMatrix) > 1)
+    # expect_true(ncol(container$expressionMatrix) > 1)
+    # expect_true(nrow(container$expressionMatrix) > 1)
     # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-    # flog.info("container$expressionMatrix:", str(ctner$expressionMatrix), name="log", capture=TRUE)
+    # flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
 })
 
 
