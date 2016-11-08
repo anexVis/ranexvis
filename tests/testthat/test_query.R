@@ -4,7 +4,7 @@ flog.appender(appender.file("test_query.log"), name="log")
 
 # Need to set up before querying
 
-setup()
+# setup()
 
 test_that("Container was loaded with data", {
     expect_true(exists("geneList", container))

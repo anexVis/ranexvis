@@ -1,7 +1,7 @@
 library(stringr)
 library(futile.logger)
 
-setup()
+# setup()
 
 flog.appender(appender.file("test_analysis.log"), 'log')
 context("Analysis methods")
