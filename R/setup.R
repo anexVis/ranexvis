@@ -25,7 +25,7 @@ loadGeneData <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), write.to.redis =
     names(output) = cols
     if (write.to.redis) {
         tryCatch(
-            invisible(rredis::redisSet(path2dataset,output)),
+            invisible(rredis::redisSet('geneList',output)),
             error = function(e){
                 warning("Redis server not connected.")
             }
@@ -44,7 +44,7 @@ loadSampleMetadata <- function(db='gtex', cols=NULL, write.to.redis = TRUE, ctne
     }
     if (write.to.redis) {
         tryCatch(
-        invisible(rredis::redisSet(path2dataset,output)),
+        invisible(rredis::redisSet('sampleMetadata',output)),
          error = function(e){
                 warning("Redis server not connected.")
          })

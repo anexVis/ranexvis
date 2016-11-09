@@ -8,25 +8,32 @@ test_that("Redis server is running", {
     expect_error(rredis::redisConnect('blablahost'), "cannot open the connection", fixed=TRUE)
     expect_error(rredis::redisConnect('localhost'), NA)
     try ({
-     rredis::redisSet("testvar", "this is a test variable")
-    expect_equal(rredis::redisGet("testvar"), "this is a test variable")
+        rredis::redisSet("testvar", "this is a test variable")
+        expect_equal(rredis::redisGet("testvar"), "this is a test variable")
     })
 
 })
 
-# test_that("Load genelist into redis server", {
-# })
+test_that("Load genelist into redis server", {
+    start = proc.time()
+    loadGeneData(write.to.redis = TRUE)
+    runtime = proc.time() - start
+    gDataRedis = rredis::redisGet('geneList')
+    expect_equal(names(gDataRedis), c('Ensembl', 'HGNC'))
+    flog.info("loadGeneList to redis in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
+})
 
-# test_that("Load gene list", {
-#     fields = c("EnsemblID", "HGNC")
-#     start = proc.time()
-#     loadGeneData(cols=fields, write.to.redis=FALSE)
-#     runtime = proc.time() - start
-#     gData = container$geneList
-#     expect_equal(names(gData), fields)
-#     flog.info("loadGeneList in: %6.4f seconds.", runtime['elapsed'], name="log")
-#     flog.info("container$geneList: ", gData, name="log", capture=TRUE)
-# })
+test_that("Load gene list", {
+    fields = c("EnsemblID", "HGNC")
+    start = proc.time()
+    loadGeneData(cols=fields, write.to.redis=FALSE)
+    runtime = proc.time() - start
+    gData = container$geneList
+    expect_equal(names(gData), fields)
+    flog.info("loadGeneList to R environment in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("container$geneList: ", gData, name="log", capture=TRUE)
+})
 #
 # test_that("Load sample metadata", {
 #     # load all columns
