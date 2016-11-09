@@ -15,11 +15,12 @@ test_that("Redis server is running", {
 })
 
 test_that("Load genelist into redis server", {
+    fields = c("EnsemblID", "HGNC")
     start = proc.time()
-    loadGeneData(write.to.redis = TRUE)
+    loadGeneData(cols=fields, write.to.redis = TRUE)
     runtime = proc.time() - start
     gDataRedis = rredis::redisGet('geneList')
-    expect_equal(names(gDataRedis), c('Ensembl', 'HGNC'))
+    expect_equal(names(gDataRedis),fields)
     flog.info("loadGeneList to redis in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
 })
