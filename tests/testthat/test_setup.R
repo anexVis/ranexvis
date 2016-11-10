@@ -35,82 +35,105 @@ test_that("Load gene list", {
     flog.info("loadGeneList to R environment in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("container$geneList: ", gData, name="log", capture=TRUE)
 })
-#
-# test_that("Load sample metadata", {
-#     # load all columns
-#     start = proc.time()
-#     loadSampleMetadata(write.to.redis=FALSE)
-#     runtime = proc.time() - start
-#     expect_equal(names(container$sampleMetadata)[1], 'SAMPID')
-#     flog.info("loadSampleMetadata in: %6.4f seconds.", runtime['elapsed'], name="log")
-#     flog.info("container$sampleMetadata:", container$sampleMetadata, name="log", capture=TRUE)
-#
-#     # load again, only selected columns
-#     fields = c("SAMPID", "SMTS", "SMTSD")
-#     loadSampleMetadata(cols=fields)
-#     expect_equal(names(container$sampleMetadata), fields)
-# })
-#
-# test_that("Load expression data", {
-#
-#     ### define the subset
-#     samples = c("GTEX-UTHO-1226-SM-3GAEE",
-#                 "GTEX-146FH-1726-SM-5QGQ2",
-#                 "GTEX-QDT8-0126-SM-48TZ1",
-#                 "GTEX-QCQG-1326-SM-48U24",
-#                 "GTEX-WZTO-2926-SM-3NM9I",
-#                 "GTEX-12WSB-0126-SM-59HJN",
-#                 "GTEX-11VI4-0626-SM-5EQLO",
-#                 "GTEX-T5JC-0526-SM-32PM7",
-#                 "GTEX-RU1J-0426-SM-46MUK",
-#                 "GTEX-1212Z-0226-SM-59HLF",
-#                 "GTEX-11DZ1-2026-SM-5A5KG")
-#     genes.wVersion = c(
-#         "ENSG00000242268.2",
-#         "ENSG00000259041.1",
-#         "ENSG00000270112.3",
-#         "ENSG00000167578.16",
-#         "ENSG00000278814.1",
-#         "ENSG00000078237.5")
-#     genes = c(
-#         "ENSG00000242268",
-#         "ENSG00000259041",
-#         "ENSG00000270112",
-#         "ENSG00000167578",
-#         "ENSG00000278814",
-#         "ENSG00000078237")
-#
-#     ### Load toil-rsem processed-data
-#     start = proc.time()
-#     loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", write.to.redis=FALSE,ctner=container)
-#     runtime = proc.time() - start
-#     m2 = get("/toil-rsem/gene/tpm/expressionMatrix", envir = container)
-#     expect_equal(colnames(m2), genes)
-#     expect_equal(rownames(m2), samples)
-#     flog.info("Load toil-rsem data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
-#     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
-#     flog.info("expression matrix:", m2, name="log", capture=TRUE)
-#
-#     ### Load broad-processed data
-#     start = proc.time()
-#     loadExpressionData(genes, samples,db = "gtex", processing = "broad", unit = "fpkm", write.to.redis = FALSE, ctner = container)
-#     runtime = proc.time() - start
-#     m = get("/broad/gene/fpkm/expressionMatrix", envir = container)
-#     flog.info("Load broad data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
-#     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
-#     flog.info("expression matrix:", m, name="log", capture=TRUE)
-#
-#
-#
-#     ### load everything, will take some time
-#     # start = proc.time()
-#     # loadExpressionData(db=db, processing = processing, unit = unit)
-#     # runtime = proc.time() - start
-#     # m = get("")
-#     # expect_true(ncol(container$expressionMatrix) > 1)
-#     # expect_true(nrow(container$expressionMatrix) > 1)
-#     # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-#     # flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
-# })
-#
-#
+
+test_that("Load sample metadata", {
+    start = proc.time()
+    loadSampleMetadata(write.to.redis=TRUE)
+    runtime = proc.time() - start
+    sampleData = rredis::redisGet('sampleMetadata')
+    expect_equal(names(sampleData)[1], 'SAMPID')
+    flog.info("loadSampleMetadata to Redis in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("redisGet('sampleMetadata'):", sampleData, name="log", capture=TRUE)
+
+    # load again, only selected columns
+    fields = c("SAMPID", "SMTS", "SMTSD")
+    loadSampleMetadata(cols=fields, write.to.redis = TRUE)
+    expect_equal(names(rredis::redisGet('sampleMetadata')), fields)
+
+    # load all columns
+    start = proc.time()
+    loadSampleMetadata(write.to.redis=FALSE)
+    runtime = proc.time() - start
+    expect_equal(names(container$sampleMetadata)[1], 'SAMPID')
+    flog.info("loadSampleMetadata in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("container$sampleMetadata:", container$sampleMetadata, name="log", capture=TRUE)
+
+    # load again, only selected columns
+    fields = c("SAMPID", "SMTS", "SMTSD")
+    loadSampleMetadata(cols=fields)
+    expect_equal(names(rredis::redisGet('sampleMetadata')), fields)
+})
+
+
+
+test_that("Load expression data", {
+
+    ### define the subset
+    samples = c("GTEX-UTHO-1226-SM-3GAEE",
+                "GTEX-146FH-1726-SM-5QGQ2",
+                "GTEX-QDT8-0126-SM-48TZ1",
+                "GTEX-QCQG-1326-SM-48U24",
+                "GTEX-WZTO-2926-SM-3NM9I",
+                "GTEX-12WSB-0126-SM-59HJN",
+                "GTEX-11VI4-0626-SM-5EQLO",
+                "GTEX-T5JC-0526-SM-32PM7",
+                "GTEX-RU1J-0426-SM-46MUK",
+                "GTEX-1212Z-0226-SM-59HLF",
+                "GTEX-11DZ1-2026-SM-5A5KG")
+    genes.wVersion = c(
+        "ENSG00000242268.2",
+        "ENSG00000259041.1",
+        "ENSG00000270112.3",
+        "ENSG00000167578.16",
+        "ENSG00000278814.1",
+        "ENSG00000078237.5")
+    genes = c(
+        "ENSG00000242268",
+        "ENSG00000259041",
+        "ENSG00000270112",
+        "ENSG00000167578",
+        "ENSG00000278814",
+        "ENSG00000078237")
+
+    ### Load toil-rsem processed-data
+    start = proc.time()
+    loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", write.to.redis=FALSE,ctner=container)
+    runtime = proc.time() - start
+    m2 = get("/toil-rsem/gene/tpm/expressionMatrix", envir = container)
+
+    start = proc.time()
+    loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", write.to.redis=TRUE)
+    runtime = proc.time() - start
+    m2.redis = rredis::redisGet("/toil-rsem/gene/tpm/expressionMatrix")
+
+    expect_equal(m2, m2.redis)
+    expect_equal(colnames(m2), genes)
+    expect_equal(rownames(m2), samples)
+    flog.info("Load toil-rsem data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
+    flog.info("expression matrix in container:", m2, name="log", capture=TRUE)
+    flog.info("expression matrix in redis:", m2.redis, name="log", capture=TRUE)
+
+    ### Load broad-processed data
+    start = proc.time()
+    loadExpressionData(genes, samples,db = "gtex", processing = "broad", unit = "fpkm", write.to.redis = FALSE, ctner = container)
+    runtime = proc.time() - start
+    m = get("/broad/gene/fpkm/expressionMatrix", envir = container)
+    flog.info("Load broad data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
+    flog.info("expression matrix:", m, name="log", capture=TRUE)
+
+
+
+    ### load everything, will take some time
+    # start = proc.time()
+    # loadExpressionData(db=db, processing = processing, unit = unit)
+    # runtime = proc.time() - start
+    # m = get("")
+    # expect_true(ncol(container$expressionMatrix) > 1)
+    # expect_true(nrow(container$expressionMatrix) > 1)
+    # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
+    # flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
+})
+
+
