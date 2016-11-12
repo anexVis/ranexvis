@@ -123,17 +123,14 @@ test_that("Load expression data", {
     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
     flog.info("expression matrix:", m, name="log", capture=TRUE)
 
-
-
     ### load everything, will take some time
-    # start = proc.time()
-    # loadExpressionData(db=db, processing = processing, unit = unit)
-    # runtime = proc.time() - start
-    # m = get("")
-    # expect_true(ncol(container$expressionMatrix) > 1)
-    # expect_true(nrow(container$expressionMatrix) > 1)
-    # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-    # flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
+    start = proc.time()
+    loadExpressionData(db='gtex', processing = 'toil-rsem', unit = 'tpm',write.to.redis = TRUE)
+    runtime = proc.time() - start
+    m = rredis::redisGet('/toil-rsem/gene/tpm/expressionMatrix')
+    expect_equal(ncol(m), 60498)
+    expect_equal(nrow(m), 7863)
+    flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
 })
-
 

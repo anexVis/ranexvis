@@ -7,6 +7,7 @@ setup <- function(write.to.redis=TRUE) {
     loadGeneData(write.to.redis=write.to.redis, ctner=container)
     loadSampleMetadata(write.to.redis=write.to.redis, ctner=container)
     loadExpressionData(write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
+    message("Finished loading all data to redis server")
 }
 
 #' Load the list of genes
@@ -102,13 +103,12 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
         else colnames(exprMatrix) = geneList
 
         if (!is.null(samples)) rownames(exprMatrix) = sampleList[sampleList %in% samples]
-        else
-            rownames(exprMatrix) = makeUniqueNames(sampleList)
+        else rownames(exprMatrix) = makeUniqueNames(sampleList)
 
         if (write.to.redis) {
-            invisible(checkConnectionAndSet(paste0(path2dataset, "/expressionMatrix"), exprMatrix))
+            invisible(checkConnectionAndSet(paste0(path2dataset, "/expressionMatrix"),as.matrix( exprMatrix)))
         } else {
-            invisible(assign(paste0(path2dataset, "/expressionMatrix"), exprMatrix,envir = ctner))
+            invisible(assign(paste0(path2dataset, "/expressionMatrix"), as.matrix(exprMatrix),envir = ctner))
         }
     }, error = function(e) {
         print(e)
@@ -119,5 +119,7 @@ checkConnectionAndSet <- function(key,value) {
     tryCatch(rredis::redisSet(key,value),
          error = function(e) {
              print(e)
+             message("Value to set: ", str(value))
+             stop("Value not set for key ", key)
     })
 }

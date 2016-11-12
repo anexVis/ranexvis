@@ -19,16 +19,16 @@ test_that("Database path is set correctly.", {
 test_that("Retrieval of gene list.", {
     # expect_warning(genelist = getGeneList(expect='df'),'HDF5 on bit64conversion')
     # expect_warning(jsonlist = getGeneList(db='gtex', expect='json'), 'HDF5 on bit64conversion')
-    genelist = getGeneList("gtex", c("EnsemblID", "HGNC"), expect="df")
+    genelist = getGeneList("gtex", c("EnsemblID", "HGNC"), expect="df", read.from.redis=FALSE)
     expect_equal(names(genelist) , c("EnsemblID", "HGNC"))
 })
 
 test_that("Retrieval of sample grouping list.", {
-   sampleGroupingList = getSampleGroupingList(expect='df')
+   sampleGroupingList = getSampleGroupingList(expect='df',read.from.redis=FALSE)
 })
 
 test_that("Retrieval of sample metadata.", {
-   sampleMetadata = getSampleMetadata("gtex", cols=c("SAMPID", "SMTS"), expect="dt")
+   sampleMetadata = getSampleMetadata("gtex", cols=c("SAMPID", "SMTS"), expect="dt",read.from.redis=FALSE)
    expect_equal(ncol(sampleMetadata), 2)
 })
 
@@ -54,7 +54,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  read.from.redis=FALSE
                                   )
    expect_false(is.null(expr1))
    expect_equal(ncol(expr1),2)
@@ -69,7 +70,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  read.from.redis=FALSE
                                   )
    expect_equal(ncol(expr2),2)
    expect_equal(colnames(expr1), colnames(expr2))
@@ -84,7 +86,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  read.from.redis=FALSE
                                   ), "No matching record found.")
 })
 
