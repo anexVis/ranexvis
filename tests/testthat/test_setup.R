@@ -100,15 +100,18 @@ test_that("Load expression data", {
     loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", write.to.redis=FALSE,ctner=container)
     runtime = proc.time() - start
     m2 = get("/toil-rsem/gene/tpm/expressionMatrix", envir = container)
+    expect_equal(genes, colnames(m2))
+    expect_equal(samples, rownames(m2))
 
     start = proc.time()
     loadExpressionData(genes, samples, db="gtex", processing="toil-rsem", unit="tpm", write.to.redis=TRUE)
     runtime = proc.time() - start
     m2.redis = rredis::redisGet("/toil-rsem/gene/tpm/expressionMatrix")
+    expect_equal(genes, colnames(m2.redis))
+    expect_equal(samples, rownames(m2.redis))
 
     expect_equal(m2, m2.redis)
-    expect_equal(colnames(m2), genes)
-    expect_equal(rownames(m2), samples)
+
     flog.info("Load toil-rsem data subset in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
     flog.info("expression matrix in container:", m2, name="log", capture=TRUE)
@@ -123,14 +126,13 @@ test_that("Load expression data", {
     flog.info("ls(container): ", ls(container), name="log", capture=TRUE)
     flog.info("expression matrix:", m, name="log", capture=TRUE)
 
-    ### load everything, will take some time
-    start = proc.time()
-    loadExpressionData(db='gtex', processing = 'toil-rsem', unit = 'tpm',write.to.redis = TRUE)
-    runtime = proc.time() - start
-    m = rredis::redisGet('/toil-rsem/gene/tpm/expressionMatrix')
-    expect_equal(ncol(m), 60498)
-    expect_equal(nrow(m), 7863)
-    flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
+    # ### load everything, will take some time
+    # start = proc.time()
+    # loadExpressionData(db='gtex', processing = 'toil-rsem', unit = 'tpm',write.to.redis = TRUE)
+    # runtime = proc.time() - start
+    # m = rredis::redisGet('/toil-rsem/gene/tpm/expressionMatrix')
+    # # expect_equal(ncol(m), 60498)
+    # # expect_equal(nrow(m), 7863)
+    # flog.info("loadExpressionMatrix in: %6.4f seconds.", runtime['elapsed'], name="log")
+    # # flog.info("container$expressionMatrix:", str(container$expressionMatrix), name="log", capture=TRUE)
 })
-
