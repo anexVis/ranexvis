@@ -70,7 +70,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
 
     samplesInMatrix= data.table::data.table(rownames(fullExprMatrix))
     names(samplesInMatrix) = c("SAMPID")
-    sampleList = merge(samplesInMatrix, sampleMeta, by = "SAMPID", all.x=TRUE)
+    sampleList = merge(samplesInMatrix, sampleMeta, by = "SAMPID", all.x=TRUE,sort=FALSE)
 
     colidx = which(genesInMatrix %in% removeEnsemblVersion(genes))
     rowidx = which(sampleList[[sampleGrouping]] %in% sampleGroups)

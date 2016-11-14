@@ -4,3 +4,4 @@
 ^installme.R$
 ^R/quicktest.R
 ^R/util.R
+tests/testthat/*.log
