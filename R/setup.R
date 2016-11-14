@@ -3,10 +3,10 @@ data(sysdata,envir=environment())
 
 #' Load several data sets into the memory and store it in the globally available `container`
 #'
-setup <- function(write.to.redis=TRUE) {
+setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     loadGeneData(write.to.redis=write.to.redis, ctner=container)
-    loadSampleMetadata(write.to.redis=write.to.redis, ctner=container)
-    loadExpressionData(write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
+    loadSampleMetadata(swrite.to.redis=write.to.redis, ctner=container)
+    loadExpressionData(genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
     message("Finished loading all data to redis server")
 }
 
