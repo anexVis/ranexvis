@@ -3,6 +3,10 @@ flog.appender(appender.file("test_setup.log"), name="log")
 
 context("Setting up")
 
+test_that("dbpath is set.", {
+    expect_equal(dbpath[['gtex']], '/var/www/html/data/GTEx_V6.h5')
+})
+
 test_that("Redis server is running", {
 
     expect_error(rredis::redisConnect('blablahost'), "cannot open the connection", fixed=TRUE)

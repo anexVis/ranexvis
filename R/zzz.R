@@ -1,6 +1,7 @@
 .onLoad <- function(libname, pkgname) {
     # open redis connection
-    rredis::redisConnect('localhost')
+    # nodelay=TRUE cause Error in setting TCP_NODELAY
+    rredis::redisConnect('localhost',nodelay = FALSE)
 
     ### for development only
     # loading full set of expression data is not possible with the current implementation and setup:
@@ -12,5 +13,11 @@
                     'HS6ST1', 'HS6ST2', 'HS6ST3', 'HS3ST1',
                     'HS3ST2', 'HS3ST3A1', 'HS3ST3B1', 'HS3ST4',
                     'HS3ST5', 'HS3ST6')
-    setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = TRUE)
+    tryCatch(
+        setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = TRUE),
+        error = function(e) {
+            print(traceback())
+            stop(e)
+        }
+    )
 }
