@@ -10,7 +10,7 @@ data(sysdata,envir=environment())
 #' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.table
 #' @export
 getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json',read.from.redis=TRUE) {
-    if (read.from.redis)  output = rredis::redisGet("geneList")
+    if (read.from.redis) output = redisOpenGetClose("geneList")
     else output = get("geneList", envir = container)
 
     if (expect == 'json') {
@@ -20,13 +20,23 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json',rea
     }
 }
 
+# getGeneSets <- function(db="gtex", cols=c("EnsemblID", "HGNC"), expec='json', read.from.redis=TRUE) {
+#     if (read.from.redis) output = rredis::redisGet("geneSets")
+#     else output = get("geneSets", envir=container)
+#     if (expect == 'json') {
+#         return(jsonlite::toJSON(output))
+#     } else {
+#         return(output)
+#     }
+# }
+
 #' getSampleGroupingList
 #'
 #' @param db the data set of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
 #' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
 #' @export
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json',read.from.redis=TRUE) {
-    if (read.from.redis) allmeta = rredis::redisGet('sampleMetadata')
+    if (read.from.redis) allmeta = redisOpenGetClose('sampleMetadata')
     else  allmeta = get("sampleMetadata", envir=container)
     output = list()
     output[[grouping]] = unique(allmeta[[grouping]])
@@ -39,14 +49,14 @@ getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json',read
 
 #' getSampleMetadata
 #'
-#' @param db
+#' @param db database, default="gtex"
 #' @param cols selected columns in metadata. Default value: c("SAMPID", "SMTS"). Available columns:
 #' "SAMPID"     "SMATSSCR"   "SMNABTCH"   "SMNABTCHT"  "SMNABTCHD"  "SMGEBTCH"   "SMCENTER"   "SMPTHNTS"   "SMRIN"
 #' "SMTS"       "SMTSD"      "SMUBRID"    "SMTSPAX"    "SMTSTPTREF" "SMAFRZE"
 #' @param expect output format. Available values: 'json', 'datatable'
 #' @export
 getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json", read.from.redis=TRUE) {
-    if (read.from.redis)  allmeta = rredis::redisGet("sampleMetadata")
+    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadata")
     else allmeta = get("sampleMetadata", envir=container)
     output = allmeta[cols]
     returnData = switch (expect,
@@ -63,7 +73,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable", read.from.redis=read.from.redis)
 
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
-    if (read.from.redis) fullExprMatrix =  rredis::redisGet(paste(path2dataset, "expressionMatrix", sep="/"))
+    if (read.from.redis) fullExprMatrix =  redisOpenGetClose(paste(path2dataset, "expressionMatrix", sep="/"))
     else fullExprMatrix =  get(paste(path2dataset, "expressionMatrix", sep="/"), envir = container)
 
     genesInMatrix = colnames(fullExprMatrix)

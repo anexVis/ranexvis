@@ -1,7 +1,7 @@
+pkg.env <- new.env(parent=emptyenv())
 .onLoad <- function(libname, pkgname) {
     # open redis connection
-    # nodelay=TRUE cause Error in setting TCP_NODELAY
-    rredis::redisConnect('localhost',nodelay = FALSE)
+    rredis::redisConnect('localhost',returnRef = TRUE)
 
     ### for development only
     # loading full set of expression data is not possible with the current implementation and setup:
@@ -14,10 +14,14 @@
                     'HS3ST2', 'HS3ST3A1', 'HS3ST3B1', 'HS3ST4',
                     'HS3ST5', 'HS3ST6')
     tryCatch(
-        setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = TRUE),
+        setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = FALSE),
         error = function(e) {
             print(traceback())
             stop(e)
         }
     )
+
+    # function calls via opencpu won't be able to re-use this connection
+    # just close it
+    rredis::redisClose()
 }

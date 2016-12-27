@@ -55,3 +55,21 @@ hgnc2ensembl <- function(hgnc_symbol) {
     return(tmp[,2])
 }
 
+#' Wrapping around redisGet to use with OpenCPU
+#' Since each function call via OpenCPU does not
+#' have access to redis connection created by other calls,
+#' this function is used to create a short-lived connection
+#' that will be closed immediately after value is retrieved
+#'
+redisOpenGetClose <- function(key) {
+    rredis::redisConnect()
+    val = rredis::redisGet(key)
+    rredis::redisClose()
+    return(val)
+}
+
+redisOpenSetClose <- function(key, value) {
+    rredis::redisConnect()
+    rredis::redisSet(key,value)
+    rredis::redisClose()
+}

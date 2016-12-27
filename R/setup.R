@@ -7,7 +7,12 @@ setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     loadGeneData(write.to.redis=write.to.redis, ctner=container)
     loadSampleMetadata(write.to.redis=write.to.redis, ctner=container)
     loadExpressionData(genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
-    message("Finished loading data to redis server")
+    if (write.to.redis) message("Finished loading data to redis server")
+
+    else {
+        message("Finished loading data into container")
+        print(container)
+    }
 }
 
 #' Load the list of genes
@@ -35,6 +40,26 @@ loadGeneData <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), write.to.redis =
         invisible(assign("geneList", output, envir=ctner))
     }
 }
+
+# loadGeneSets <- function(write.to.redis=TRUE) {
+#     raw = data.table::data.table(rhdf5::h5read(dbpath[[db]], '/geneSets'))
+#     output = list()
+#     for (i in c(0:nrow(raw))) {
+#         members = strsplit(raw[i,2])[[1]]
+#         # look up ensemblID
+#         output[[i]] = list(id=raw[i,0],description=raw[i,1], members=strsplit(raw[i,2])[[1]])
+#     }
+#     if (write.to.redis) {
+#          tryCatch(
+#             invisible(rredis::redisSet('geneSets',output)),
+#             error = function(e){
+#                 warning("Redis server not connected.")
+#             }
+#         )
+#     } else {
+#         invisible(assign("geneSets", output, envir=ctner))
+#     }
+# }
 
 loadSampleMetadata <- function(db='gtex', cols=NULL, write.to.redis = TRUE, ctner=container) {
     path2dataset = paste("/metadata/sample")
