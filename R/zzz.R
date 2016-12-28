@@ -13,15 +13,14 @@ pkg.env <- new.env(parent=emptyenv())
                     'HS6ST1', 'HS6ST2', 'HS6ST3', 'HS3ST1',
                     'HS3ST2', 'HS3ST3A1', 'HS3ST3B1', 'HS3ST4',
                     'HS3ST5', 'HS3ST6')
-    tryCatch(
-        setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = FALSE),
+    tryCatch({
+        setup(genes=hgnc2ensembl(pilot_genes),write.to.redis = FALSE)
+        # function calls via opencpu won't be able to re-use this connection
+        # just close it
+        rredis::redisClose()},
         error = function(e) {
             print(traceback())
             stop(e)
         }
     )
-
-    # function calls via opencpu won't be able to re-use this connection
-    # just close it
-    rredis::redisClose()
 }
