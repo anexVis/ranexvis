@@ -17,3 +17,9 @@ test_that("HGNC --> Ensembl IDs", {
     geneEnsembl = c("ENSG00000002587.5", "ENSG00000125430.4", "ENSG00000176022.3", "ENSG00000027847.9")
     expect_equal(hgnc2ensembl(geneSymbol), removeEnsemblVersion(geneEnsembl))
 })
+
+test_that("Ensembl gene IDs --> HGNC", {
+    geneSymbol = c('HS3ST1', 'HS3ST3B1', 'B3GALT6', 'B4GALT7')
+    geneEnsembl = c("ENSG00000002587", "ENSG00000125430", "ENSG00000176022", "ENSG00000027847")
+    expect_equal(ensembl2hgnc(geneEnsembl), geneSymbol)
+})
