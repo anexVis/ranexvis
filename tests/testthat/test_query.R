@@ -55,6 +55,7 @@ test_that("Retrieval of gene expression matrix.", {
                                   db = "gtex",
                                   processing = "toil-rsem",
                                   unit="tpm",
+                                  expect='datatable',
                                   read.from.redis=FALSE
                                   )
    expect_false(is.null(expr1))
@@ -71,6 +72,7 @@ test_that("Retrieval of gene expression matrix.", {
                                   db = "gtex",
                                   processing = "toil-rsem",
                                   unit="tpm",
+                                  expect='datatable',
                                   read.from.redis=FALSE
                                   )
    expect_equal(ncol(expr2),2)
@@ -87,7 +89,35 @@ test_that("Retrieval of gene expression matrix.", {
                                   db = "gtex",
                                   processing = "toil-rsem",
                                   unit="tpm",
+                                  expect='datatable',
                                   read.from.redis=FALSE
                                   ), "No matching record found.")
 })
 
+test_that("Retrieval of gene expression matrix in JSON string.", {
+    selectedEnsembls = c("ENSG00000176022.3", "ENSG00000027847.9") # B3GALT6, B4GALT7
+    expr_json = getGeneExpressionMatrix(genes = selectedEnsembls,
+                                  sampleGroups="Bladder",
+                                  sampleGrouping="SMTS",
+                                  db = "gtex",
+                                  processing = "toil-rsem",
+                                  unit="tpm",
+                                  expect='json',
+                                  read.from.redis=FALSE
+                                  )
+    flog.info("Expression of 2 genes in Bladder samples, JSON format:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
+})
+
+test_that("Retrieval of scatter data in JSON string.", {
+    # B3GALT6, B4GALT7
+    expr_json = getScatterData(x = "ENSG00000176022.3",
+                               y = "ENSG00000027847.9",
+                               sampleGroups="Bladder",
+                               sampleGrouping="SMTS",
+                               db = "gtex",
+                               processing = "toil-rsem",
+                               unit="tpm",
+                               read.from.redis=FALSE
+                               )
+    flog.info("Scatter data in JSON format:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
+})

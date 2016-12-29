@@ -51,7 +51,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  expect='datatable'
                                   )
    expect_false(is.null(expr1))
    expect_equal(ncol(expr1),2)
@@ -66,7 +67,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  expect='datatable'
                                   )
    expect_equal(ncol(expr2),2)
    expect_equal(colnames(expr1), colnames(expr2))
@@ -81,7 +83,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   sampleGrouping="SMTS",
                                   db = "gtex",
                                   processing = "toil-rsem",
-                                  unit="tpm"
+                                  unit="tpm",
+                                  expect='datatable'
                                   ), "No matching record found.")
 })
 

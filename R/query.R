@@ -69,8 +69,8 @@ getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json"
 
 #' Return a samples x genes expression matrix for correlation calculation
 #'
-getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
-    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect="datatable", read.from.redis=read.from.redis)
+getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", expect="json",read.from.redis=TRUE) {
+    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect='datatable', read.from.redis=read.from.redis)
 
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
     if (read.from.redis) fullExprMatrix =  redisOpenGetClose(paste(path2dataset, "expressionMatrix", sep="/"))
@@ -91,8 +91,27 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
 
     tryCatch ({
         exprMatrix = fullExprMatrix[rowidx,colidx]
-        return(exprMatrix)
+        if (expect=='datatable' || expect=='dt')  return(exprMatrix)
+        else return(jsonlite::toJSON(exprMatrix))
     }, error = function(e) {
         print(e)
     })
+}
+
+#' Return ready-to-plot expression data for 2 genes
+#' (This is a thin wrapper of getExpressionMatrix)
+#'
+getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
+    expr = getGeneExpressionMatrix(genes = c(x,y),
+                                        sampleGroups=sampleGroups,
+                                        sampleGrouping=sampleGrouping,
+                                        db = db,
+                                        processing=processing,
+                                        unit = unit,
+                                        expect='datatable',
+                                        read.from.redis=FALSE
+    )
+    labels = ensembl2hgnc(removeEnsemblVersion(c(x,y)))
+    names(expr)[1:2] = c('x', 'y')
+    return(jsonlite::toJSON(list(xlabel=labels[1], ylabel=labels[2],data=expr)))
 }

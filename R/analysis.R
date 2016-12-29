@@ -19,7 +19,7 @@ coexpression <- function(x, method="pearson",...) {
 #'
 #' @export
 coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,processing, unit,...) {
-    exprMatrix = getGeneExpressionMatrix(genes, sampleGroups, sampleGrouping, db, processing, unit)
+    exprMatrix = getGeneExpressionMatrix(genes, sampleGroups, sampleGrouping, db, processing, unit, expect='datatable')
     colnames(exprMatrix) = genes
     corrMatrix = coexpression(exprMatrix, ...)
     geneInputDt = data.table::data.table(genes)
