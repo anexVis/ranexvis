@@ -113,5 +113,5 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gte
     )
     labels = ensembl2hgnc(removeEnsemblVersion(c(x,y)))
     names(expr)[1:2] = c('x', 'y')
-    return(jsonlite::toJSON(list(xlabel=labels[1], ylabel=labels[2],data=expr)))
+    return(jsonlite::toJSON(list(xlabel=labels[[1]], ylabel=labels[[2]],data=expr)))
 }
