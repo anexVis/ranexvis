@@ -32,6 +32,12 @@ test_that("Retrieval of sample metadata.", {
    expect_equal(ncol(sampleMetadata), 2)
 })
 
+test_that("Retrieval of sample metadata by group", {
+    sampleMetadata = getSampleMetadataByGroup("Bladder", sampleGrouping="SMTS", cols=c("SAMPID", "SMTS","SMUBRID"), expect="dt", read.from.redis=FALSE)
+    flog.info("Sample metadata:", sampleMetadata[1:10,], name='log', capture=TRUE)
+    expect_equal(ncol(sampleMetadata),3)
+    expect_equal(sampleMetadata$SMTS,rep("Bladder", nrow(sampleMetadata)))
+})
 # obsolete test
 # test_that("Reading 1D array from HDF5", {
 #    db = 'gtex'
@@ -120,4 +126,18 @@ test_that("Retrieval of scatter data in JSON string.", {
                                read.from.redis=FALSE
                                )
     flog.info("Scatter data in JSON format:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
+})
+
+test_that("Retrieval of scatter data for identical pair.", {
+    # B3GALT6, B4GALT7
+    expr_json = getScatterData(x = "ENSG00000176022.3",
+                               y = "ENSG00000176022.3",
+                               sampleGroups="Bladder",
+                               sampleGrouping="SMTSD",
+                               db = "gtex",
+                               processing = "toil-rsem",
+                               unit="tpm",
+                               read.from.redis=FALSE
+                               )
+    flog.info("Scatter data for identical pair:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
 })

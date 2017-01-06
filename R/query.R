@@ -55,10 +55,38 @@ getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json',read
 #' "SMTS"       "SMTSD"      "SMUBRID"    "SMTSPAX"    "SMTSTPTREF" "SMAFRZE"
 #' @param expect output format. Available values: 'json', 'datatable'
 #' @export
-getSampleMetadata <- function(db="gtex", cols=c("SAMPID", "SMTS"), expect="json", read.from.redis=TRUE) {
+getSampleMetadata <- function(db="gtex", sampleIds=NULL , cols=c("SAMPID", "SMTS"), expect="json", read.from.redis=TRUE) {
     if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadata")
     else allmeta = get("sampleMetadata", envir=container)
-    output = allmeta[cols]
+
+    if (is.null(sampleIds))  output = allmeta[cols]
+    else output = allmeta[allmeta$SAMPID %in% sampleIds,cols]
+
+    returnData = switch (expect,
+           'json' = jsonlite::toJSON(output),
+           'datatable' = output,
+           output
+            )
+    return(returnData)
+}
+
+#' getSampleMetadataByGroup
+#'
+#' A shortcut for querying sample meta data by some grouping
+#' @param sampleGroups String or string vector, name of the groups to be selected, e.g. c('Brain', 'Liver')
+#' @param sampleGrouping [="SMTS"] available options: "SMTS", "SMTSD"
+#' @param db [="gtex"]
+#' @param cols [=c("SAMPID")]
+#' @param expect [="json"]
+#' @param read.from.redis [=TRUE]
+#' @export
+getSampleMetadataByGroup <- function(sampleGroups, sampleGrouping = "SMTS", db = "gtex", cols=c('SAMPID'), expect="json",read.from.redis=TRUE) {
+    cols = union(cols,c("SAMPID", sampleGrouping))
+    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadata")
+    else allmeta = get("sampleMetadata", envir=container)
+
+    output = allmeta[ allmeta[[sampleGrouping]] %in% sampleGroups,cols]
+
     returnData = switch (expect,
            'json' = jsonlite::toJSON(output),
            'datatable' = output,
