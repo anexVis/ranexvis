@@ -9,9 +9,13 @@ data(sysdata,envir=environment())
 #' @param cols a vector of column names to be retrieved: c('HGNC', 'EnsembleID', 'Description'), or NULL to retrieve all columns
 #' @param expect a string specifying the output format: "json" for a json object (from jsonlite::toJSON), otherwise results in a data.table
 #' @export
-getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), expect='json',read.from.redis=TRUE) {
+getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), withEnsemblVersion = TRUE, expect='json',read.from.redis=TRUE) {
     if (read.from.redis) output = redisOpenGetClose("geneList")
     else output = get("geneList", envir = container)
+
+    if (!withEnsemblVersion && 'EnsemblID' %in% cols) {
+        output[['EnsemblID']] = removeEnsemblVersion(output[['EnsemblID']])
+    }
 
     if (expect == 'json') {
         return(jsonlite::toJSON(output))
@@ -143,3 +147,19 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gte
     names(expr)[1:2] = c('x', 'y')
     return(jsonlite::toJSON(list(xlabel=labels[[1]], ylabel=labels[[2]],data=expr)))
 }
+
+#' Return a array of gene set, each item having the format as in the example:
+#' {name: 'HS synthetic enzymes', value: ['ENSG1', 'ENSG2',...]}
+getGeneSets <- function(db="gtex", processing="toil-rsem", expect="json",read.from.redis=TRUE) {
+    if (read.from.redis)
+        output = redisOpenGetClose('geneSets')
+    else
+        output = geneSets
+
+    if (expect=='json')
+        return(jsonlite::toJSON(output,auto_unbox = TRUE))
+    else
+        return(output)
+}
+
+

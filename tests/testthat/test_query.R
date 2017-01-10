@@ -23,6 +23,16 @@ test_that("Retrieval of gene list.", {
     expect_equal(names(genelist) , c("EnsemblID", "HGNC"))
 })
 
+test_that("Retrieval of gene list without Ensembl version number", {
+    genelist = getGeneList("gtex", c("EnsemblID", "HGNC"), withEnsemblVersion=FALSE,expect="df", read.from.redis = FALSE)
+    expect_equal(names(genelist) , c("EnsemblID", "HGNC"))
+})
+
+test_that("Retrieval of gene sets", {
+    genesets = getGeneSets(db="gtex", processing="toil-rsem", expect="json",read.from.redis=FALSE)
+    flog.info("Gene sets JSON: ", jsonlite::prettify(genesets), name='log', capture=TRUE)
+})
+
 test_that("Retrieval of sample grouping list.", {
    sampleGroupingList = getSampleGroupingList(expect='df',read.from.redis=FALSE)
 })

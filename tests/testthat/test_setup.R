@@ -40,6 +40,18 @@ test_that("Load gene list", {
     flog.info("container$geneList: ", gData, name="log", capture=TRUE)
 })
 
+test_that("Load gene sets into container", {
+    loadGeneSets(write.to.redis = FALSE)
+    getback = container$geneSets
+    expect_equal(getback[[1]][['name']], 'Heparan sulfate 3-O-sulfotransferases')
+})
+
+test_that("Load gene sets into redis server", {
+    loadGeneSets(write.to.redis = TRUE)
+    getback = rredis::redisGet('geneSets')
+    expect_equal(getback[[1]][['name']], 'Heparan sulfate 3-O-sulfotransferases')
+})
+
 test_that("Load sample metadata", {
     start = proc.time()
     loadSampleMetadata(write.to.redis=TRUE)
