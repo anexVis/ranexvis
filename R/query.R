@@ -24,16 +24,6 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), withEnsemblVersio
     }
 }
 
-# getGeneSets <- function(db="gtex", cols=c("EnsemblID", "HGNC"), expec='json', read.from.redis=TRUE) {
-#     if (read.from.redis) output = rredis::redisGet("geneSets")
-#     else output = get("geneSets", envir=container)
-#     if (expect == 'json') {
-#         return(jsonlite::toJSON(output))
-#     } else {
-#         return(output)
-#     }
-# }
-
 #' getSampleGroupingList
 #'
 #' @param db the data set of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
@@ -101,6 +91,7 @@ getSampleMetadataByGroup <- function(sampleGroups, sampleGrouping = "SMTS", db =
 
 #' Return a samples x genes expression matrix for correlation calculation
 #'
+#'@export
 getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", expect="json",read.from.redis=TRUE) {
     sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect='datatable', read.from.redis=read.from.redis)
 
@@ -133,6 +124,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
 #' Return ready-to-plot expression data for 2 genes
 #' (This is a thin wrapper of getExpressionMatrix)
 #'
+#' @export
 getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
     expr = getGeneExpressionMatrix(genes = c(x,y),
                                         sampleGroups=sampleGroups,
@@ -150,6 +142,8 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gte
 
 #' Return a array of gene set, each item having the format as in the example:
 #' {name: 'HS synthetic enzymes', value: ['ENSG1', 'ENSG2',...]}
+#'
+#' @export
 getGeneSets <- function(db="gtex", processing="toil-rsem", expect="json",read.from.redis=TRUE) {
     if (read.from.redis)
         output = redisOpenGetClose('geneSets')
@@ -161,5 +155,3 @@ getGeneSets <- function(db="gtex", processing="toil-rsem", expect="json",read.fr
     else
         return(output)
 }
-
-
