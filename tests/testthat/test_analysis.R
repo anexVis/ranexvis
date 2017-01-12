@@ -32,5 +32,6 @@ test_that("Heatmap data generator", {
     expect_equal(class(hmdata[1]), "character")
 
     flog.info("Matrix data ", jsonlite::prettify(hmdata[1]) , name="log", capture=TRUE)
+    matrixData = jsonlite::fromJSON(hmdata[1])
 
 })

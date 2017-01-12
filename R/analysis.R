@@ -20,12 +20,12 @@ coexpression <- function(x, method="pearson",...) {
 #' @export
 coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,processing, unit,...) {
     exprMatrix = getGeneExpressionMatrix(genes, sampleGroups, sampleGrouping, db, processing, unit, expect='datatable')
-    colnames(exprMatrix) = genes
+    genes = colnames(exprMatrix)
+
     corrMatrix = coexpression(exprMatrix, ...)
     geneInputDt = data.table::data.table(genes)
     geneList = subset(getGeneList(db, expect="dt",withEnsemblVersion = FALSE), EnsemblID %in% genes)
     rownames(corrMatrix) = merge(geneInputDt, geneList, by.x="genes", by.y= "EnsemblID", all.x = TRUE, all.y = FALSE, sort=FALSE)[['HGNC']]
-    print(corrMatrix)
     return(rvislib::heatmap.adjacency(corrMatrix, add.colnames='name', add.rownames='label'))
 }
 
