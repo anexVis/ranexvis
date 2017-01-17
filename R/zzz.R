@@ -20,8 +20,9 @@ pkg.env <- new.env(parent=emptyenv())
     for (i in c(1:length(geneSets))) {
         pilot_genes <- union(pilot_genes, geneSets[[i]][['value']])
     }
+    message(paste("Loading a pilot set of", length(pilot_genes), "genes."))
     tryCatch({
-        setup(genes=pilot_genes,write.to.redis = FALSE)
+        setup(genes=pilot_genes,write.to.redis = TRUE)
         # function calls via opencpu won't be able to re-use this connection
         # just close it
         rredis::redisClose()},

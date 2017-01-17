@@ -91,6 +91,8 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
             }
         } else if (length(colidx) < length(genes)) {
             message(paste("Only", length(colidx), "in", length(genes), "are matched."))
+            message("The unmatched gene ids are")
+            message(cat(setdiff(genes, geneList[geneList %in% removeEnsemblVersion(genes)]), sep="\n"))
         }
 
     }

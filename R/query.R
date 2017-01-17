@@ -133,7 +133,7 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gte
                                         processing=processing,
                                         unit = unit,
                                         expect='datatable',
-                                        read.from.redis=FALSE
+                                        read.from.redis=read.from.redis
     )
     labels = ensembl2hgnc(removeEnsemblVersion(c(x,y)))
     names(expr)[1:2] = c('x', 'y')
