@@ -32,7 +32,7 @@ loadGeneData <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), genes=NULL,write
 
     names(output) = cols
     if (! is.null(genes)) {
-        output = output[output[['HGNC']] %in% genes,]
+        output = output[removeEnsemblVersion(output[['EnsemblID']]) %in% removeEnsemblVersion(genes),]
     }
     if (write.to.redis) {
         tryCatch(

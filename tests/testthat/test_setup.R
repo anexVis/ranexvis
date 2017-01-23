@@ -18,24 +18,25 @@ test_that("Redis server is running", {
 
 })
 
-test_that("Load genelist into redis server", {
+test_that("Load limited genelist into redis server", {
+    fields = c("EnsemblID", "HGNC")
+    somegenes = c("ENSG00000002587", "ENSG00000122254", "ENSG00000153976")
+    loadGeneData(cols=fields, write.to.redis = TRUE, genes=somegenes)
+    gDataRedis = rredis::redisGet('geneList')
+    expect_equal(names(gDataRedis),fields)
+    expect_equal(nrow(gDataRedis),3)
+    flog.info("Load limited genelist into redis server", name="log")
+    flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
+})
+
+test_that("Load complete genelist into redis server", {
     fields = c("EnsemblID", "HGNC")
     start = proc.time()
     loadGeneData(cols=fields, write.to.redis = TRUE)
     runtime = proc.time() - start
     gDataRedis = rredis::redisGet('geneList')
     expect_equal(names(gDataRedis),fields)
-    flog.info("loadGeneList to redis in: %6.4f seconds.", runtime['elapsed'], name="log")
-    flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
-})
-
-test_that("Load limited genelist into redis server", {
-    fields = c("EnsemblID", "HGNC")
-    loadGeneData(cols=fields, write.to.redis = TRUE, genes=c('HS3ST1', 'HS3ST2', 'HS3ST3B1'))
-    gDataRedis = rredis::redisGet('geneList')
-    expect_equal(names(gDataRedis),fields)
-    expect_equal(nrow(gDataRedis),3)
-    flog.info("Load limited genelist into redis server", name="log")
+    flog.info("loadGeneList (complete) to redis in: %6.4f seconds.", runtime['elapsed'], name="log")
     flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
 })
 
