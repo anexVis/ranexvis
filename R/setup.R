@@ -4,7 +4,7 @@ data(sysdata,envir=environment())
 #' Load several data sets into the memory and store it in the globally available `container`
 #'
 setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
-    loadGeneData(write.to.redis=write.to.redis, ctner=container)
+    loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
     loadGeneSets(write.to.redis = write.to.redis, ctner=container)
     loadSampleMetadata(write.to.redis=write.to.redis, ctner=container)
     loadExpressionData(genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
@@ -22,14 +22,18 @@ setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
 #' @param cols default: c('EnsemblID', 'HGNC'), the fields to retrieve
 #' @param write.to.redis default: TRUE. Write the data to redis if TRUE. Will invalidate `ctner` option.
 #' @param ctner the environment to store the resulted gene list. Will be ignored if write.to.redis=TRUE
-loadGeneData <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), write.to.redis = TRUE, ctner=container) {
+loadGeneData <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), genes=NULL,write.to.redis = TRUE, ctner=container) {
     path2dataset = paste("/genes", cols[1], sep="/")
     output = data.table::data.table(rhdf5::h5read(dbpath[[db]],path2dataset))
     for (column in cols[2:length(cols)]) {
         path2dataset = paste("/genes", column, sep="/")
         output[[column]] = as.character(rhdf5::h5read(dbpath[[db]], path2dataset))
     }
+
     names(output) = cols
+    if (! is.null(genes)) {
+        output = output[output[['HGNC']] %in% genes,]
+    }
     if (write.to.redis) {
         tryCatch(
             invisible(rredis::redisSet('geneList',output)),

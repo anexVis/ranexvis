@@ -29,6 +29,16 @@ test_that("Load genelist into redis server", {
     flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
 })
 
+test_that("Load limited genelist into redis server", {
+    fields = c("EnsemblID", "HGNC")
+    loadGeneData(cols=fields, write.to.redis = TRUE, genes=c('HS3ST1', 'HS3ST2', 'HS3ST3B1'))
+    gDataRedis = rredis::redisGet('geneList')
+    expect_equal(names(gDataRedis),fields)
+    expect_equal(nrow(gDataRedis),3)
+    flog.info("Load limited genelist into redis server", name="log")
+    flog.info("redisGet('geneList'): ", head(gDataRedis), name="log", capture=TRUE)
+})
+
 test_that("Load gene list", {
     fields = c("EnsemblID", "HGNC")
     start = proc.time()
