@@ -14,6 +14,17 @@ datadir = "/home/trang/ncbi/dbGaP-10719/53961/PhenoGenotypeFiles/RootStudyConsen
 subjectInfo = data.table::fread(paste0(datadir,"phs000424.v6.pht002742.v6.p1.c1.GTEx_Subject_Phenotypes.GRU.txt"), header=T, sep="\t",skip = 10)
 mapSubjectSample = data.table::fread(paste0(datadir,"phs000424.v6.pht002741.v6.p1.GTEx_Sample.MULTI.txt"),header = T, sep="\t", skip = 10)
 
+### Replace encoded values by friendly values for some fields of interest
+replaceEncoding = function(x, column.name, labels) {
+    tmp = factor(x[[column.name]], labels=labels)
+    x[,column.name] = as.character(tmp)
+    return(x)
+}
+
+subjectInfo = replaceEncoding(subjectInfo, 'GENDER', labels=c("Male", "Female"))
+subjectInfo = replaceEncoding(subjectInfo, 'RACE',  labels=c("Asian", "Black or African American", "White", "American Indian or Alaska Native", "Not Reported", "Unknown"))
+subjectInfo = replaceEncoding(subjectInfo, 'ETHNCTY',  c("Not Hispanic or Latino", "Hispanic or Latino", "CEPH","Not Reported", "Unknown"))
+
 library(rhdf5)
 hf = rhdf5::H5Fopen('/var/www/html/data/GTEx_V6.h5')
 rhdf5::h5writeDataset(subjectInfo,hf,'/metadata/subject',DataFrameAsCompound=TRUE)
