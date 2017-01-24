@@ -40,6 +40,12 @@ test_that("Retrieval of sample metadata.", {
    expect_equal(ncol(sampleMetadata), 2)
 })
 
+test_that("Retrieval of sample metadata with subject phenotype.", {
+    fields = c("SAMPID", "SMTS", "SMTSD", "AGE", "GENDER", "RACE")
+    sampleMetadata = getSampleMetadata("gtex", cols=fields, expect="dt")
+    expect_equal(names(sampleMetadata), fields)
+})
+
 test_that("Retrieval of gene expression matrix.", {
    # selectedGenes = c("HS3ST1", "HS3ST3B1")
    # selectedEnsembls = c("ENSG00000002587.5", "ENSG00000125430.4") # HS3ST1, HS3STB1

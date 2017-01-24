@@ -91,6 +91,31 @@ test_that("Load sample metadata", {
     expect_equal(names(rredis::redisGet('sampleMetadata')), fields)
 })
 
+test_that("Load sample metadata with subject phenotype", {
+
+    ## load only selected columns
+    fields = c("SAMPID", "SMTS", "SMTSD", "AGE", "GENDER", "ETHNCTY")
+    loadSampleMetadataWithSubjectPhenotype(cols=fields, write.to.redis = TRUE)
+    sampleData = rredis::redisGet('sampleMetadataPhenotype')
+    expect_equal(names(sampleData), fields)
+    flog.info("redisGet('sampleMetadataPhenotype'), selected columns:", sampleData, name="log", capture=TRUE)
+
+    ## load everything, time it
+    start = proc.time()
+    loadSampleMetadataWithSubjectPhenotype(write.to.redis=TRUE)
+    runtime = proc.time() - start
+    sampleData = rredis::redisGet('sampleMetadataPhenotype')
+    flog.info("loadSampleMetadataWithSubjectPhenotype to Redis in: %6.4f seconds.", runtime['elapsed'], name="log")
+
+    ## load everything, time it
+    start = proc.time()
+    loadSampleMetadataWithSubjectPhenotype(write.to.redis=FALSE)
+    runtime = proc.time() - start
+    flog.info("loadSampleMetadataWithSubjectPhenotype in: %6.4f seconds.", runtime['elapsed'], name="log")
+    flog.info("container$sampleMetadataPhenotype:", container$sampleMetadataPhenotype, name="log", capture=TRUE)
+    # expect_equal(names(container$sampleMetadata)[1], 'SAMPID')
+
+})
 
 
 test_that("Load expression data", {

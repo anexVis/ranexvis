@@ -6,7 +6,7 @@ data(sysdata,envir=environment())
 setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
     loadGeneSets(write.to.redis = write.to.redis, ctner=container)
-    loadSampleMetadata(write.to.redis=write.to.redis, ctner=container)
+    loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
     loadExpressionData(genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
     if (write.to.redis) message("Finished loading data to redis server")
 
@@ -72,6 +72,33 @@ loadSampleMetadata <- function(db='gtex', cols=NULL, write.to.redis = TRUE, ctne
     }
 }
 
+loadSampleMetadataWithSubjectPhenotype <- function(db='gtex', cols=NULL, write.to.redis = TRUE, ctner=container) {
+    path2sample = paste("/metadata/sample")
+    path2subject = paste("/metadata/subject")
+    path2map = paste("/metadata/mapSubjectSample")
+    phenotypeFields = c("SUBJID","AGE", "GENDER", "ETHNCTY", "RACE", "HGHT", "HGHTU", "WGHT", "WGHTU", "BMI")
+
+    rhdf5::H5close()    # does it affect h5 object handles of other process/user?
+    sample = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2sample))
+    subject = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2subject))[,phenotypeFields]
+    mapSubjectSample= data.table::data.table(rhdf5::h5read(dbpath[[db]], path2map))[,c('SAMPID', 'SUBJID')]
+    join1 = merge(sample,mapSubjectSample,by="SAMPID")
+    output = merge(join1,subject,by="SUBJID")
+    if (!is.null(cols)) {
+        output = output[,cols]
+    }
+    if (write.to.redis) {
+        tryCatch(
+        invisible(rredis::redisSet('sampleMetadataPhenotype',output)),
+         error = function(e){
+                warning("Redis server not connected.")
+         })
+
+    } else {
+        invisible(assign("sampleMetadataPhenotype", output, envir=ctner))
+    }
+}
+
 loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing="toil-rsem", unit="tpm", write.to.redis = TRUE, ctner=container) {
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
     path2geneId   = paste("/", processing, "/gene/EnsemblID", sep="")
@@ -95,8 +122,8 @@ loadExpressionData <- function(genes=NULL, samples=NULL,db = "gtex", processing=
             }
         } else if (length(colidx) < length(genes)) {
             message(paste("Only", length(colidx), "in", length(genes), "are matched."))
-            message("The unmatched gene ids are")
-            message(cat(setdiff(genes, geneList[geneList %in% removeEnsemblVersion(genes)]), sep="\n"))
+            # message("The unmatched gene ids are")
+            # message(cat(setdiff(genes, geneList[geneList %in% removeEnsemblVersion(genes)]), sep="\n"))
         }
 
     }

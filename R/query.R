@@ -44,25 +44,29 @@ getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json',read
 #' getSampleMetadata
 #'
 #' @param db database, default="gtex"
-#' @param cols selected columns in metadata. Default value: c("SAMPID", "SMTS"). Available columns:
+#' @param cols selected columns in metadata. Default value: c("SAMPID", "SMTS"). Available columns includes both sample attributes such as:
 #' "SAMPID"     "SMATSSCR"   "SMNABTCH"   "SMNABTCHT"  "SMNABTCHD"  "SMGEBTCH"   "SMCENTER"   "SMPTHNTS"   "SMRIN"
 #' "SMTS"       "SMTSD"      "SMUBRID"    "SMTSPAX"    "SMTSTPTREF" "SMAFRZE"
+#' and subject phenotypes such as
+#' "AGE", "GENDER", "RACE", "ETHNCTY", "HGHT", "WGHT", "BMI"
 #' @param expect output format. Available values: 'json', 'datatable'
 #' @export
 getSampleMetadata <- function(db="gtex", sampleIds=NULL , cols=c("SAMPID", "SMTS"), expect="json", read.from.redis=TRUE) {
-    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadata")
-    else allmeta = get("sampleMetadata", envir=container)
+    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadataPhenotype")
+    else allmeta = get("sampleMetadataPhenotype", envir=container)
 
     if (is.null(sampleIds))  output = allmeta[cols]
     else output = allmeta[allmeta$SAMPID %in% sampleIds,cols]
 
     returnData = switch (expect,
-           'json' = jsonlite::toJSON(output),
-           'datatable' = output,
-           output
-            )
+                         'json' = jsonlite::toJSON(output),
+                         'datatable' = output,
+                         output
+    )
     return(returnData)
 }
+
+
 
 #' getSampleMetadataByGroup
 #'

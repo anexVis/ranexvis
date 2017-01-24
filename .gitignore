@@ -4,3 +4,5 @@
 **.Rproj
 installme.R
 tests/**/*.log
+.project
+.settings
