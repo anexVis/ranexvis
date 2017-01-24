@@ -80,7 +80,7 @@ getSampleMetadata <- function(db="gtex", sampleIds=NULL , cols=c("SAMPID", "SMTS
 #' @export
 getSampleMetadataByGroup <- function(sampleGroups, sampleGrouping = "SMTS", db = "gtex", cols=c('SAMPID'), expect="json",read.from.redis=TRUE) {
     cols = union(cols,c("SAMPID", sampleGrouping))
-    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadata")
+    if (read.from.redis)  allmeta = redisOpenGetClose("sampleMetadataPhenotype")
     else allmeta = get("sampleMetadata", envir=container)
 
     output = allmeta[ allmeta[[sampleGrouping]] %in% sampleGroups,cols]
