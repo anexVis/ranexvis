@@ -14,7 +14,7 @@ hgnc2ensembl <- function(hgnc_symbol) {
 
 loadGeneSets = function() {
 	output = list()
-    mapping <- read.table("data-raw/geneSets/labels", sep='\t', header=T)
+    mapping <- read.table("data-raw/geneSets/labels", sep='\t', header=T, comment.char="#")
     for (i in 1:nrow(mapping)) {
         name = sub(".txt", "", mapping[i,1])
         geneNames  = readLines(paste("data-raw/geneSets/", mapping[i,2], sep=""))
