@@ -3,12 +3,13 @@ hgnc2ensembl <- function(hgnc_symbol) {
     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
                                dataset = 'hsapiens_gene_ensembl',
                                host='www.ensembl.org')
-    rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol'),
+    rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol', 'ucsc'),
                         filter='hgnc_symbol', values=hgnc_symbol, mart=ensembl)
     ids = data.table::data.table(hgnc_symbol)
     names(ids) = c('hgnc_symbol')
-    tmp = merge(ids, rep_ensembl, by='hgnc_symbol', sort=FALSE)
-    return(tmp[['ensembl_gene_id']])
+    tmp = merge(ids, rep_ensembl, by='hgnc_symbol', sort=FALSE) # [,'ucsc' != ""]
+    tmp = subset(tmp, ucsc != "")
+    return(unique(tmp[['ensembl_gene_id']]))
 }
 
 

@@ -42,18 +42,35 @@ ensembl2entrez <- function(ensemblIDs) {
     return(tmp$primary_id)
 }
 
+# hgnc2ensembl <- function(hgnc_symbol) {
+#     # the var name will be made col name in data.table. keep it the same to merge
+#     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
+#                                dataset = 'hsapiens_gene_ensembl',
+#                                host='www.ensembl.org')
+#     rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol'),
+#                         filter='hgnc_symbol', values=hgnc_symbol, mart=ensembl)
+#     ids = data.table::data.table(hgnc_symbol)
+#     names(ids) = c('hgnc_symbol')
+#     tmp = merge(ids, rep_ensembl, by='hgnc_symbol', sort=FALSE)
+#     return(tmp[,2])
+# }
+
 hgnc2ensembl <- function(hgnc_symbol) {
     # the var name will be made col name in data.table. keep it the same to merge
     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
                                dataset = 'hsapiens_gene_ensembl',
                                host='www.ensembl.org')
-    rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol'),
-                        filter='hgnc_symbol', values=hgnc_symbol, mart=ensembl)
+    rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol', 'ucsc'),
+                                 filter='hgnc_symbol', values=hgnc_symbol, mart=ensembl)
     ids = data.table::data.table(hgnc_symbol)
     names(ids) = c('hgnc_symbol')
     tmp = merge(ids, rep_ensembl, by='hgnc_symbol', sort=FALSE)
-    return(tmp[,2])
+    # some genes have duplicate Ensembl ID, mapping to different regions in different assembly
+    # further filtering on 'ucsc' to make sure that only the ID in the primary assembly is used
+    tmp = subset(tmp, ucsc != "")
+    return(unique(tmp[['ensembl_gene_id']]))
 }
+
 
 ensembl2hgnc <- function(ensembl_id) {
     # the var name will be made col name in data.table. keep it the same to merge
