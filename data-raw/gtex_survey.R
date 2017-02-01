@@ -34,3 +34,30 @@ rhdf5::h5writeDataset(mapSubjectSample, hf, "/metadata/mapSubjectSample", DataFr
 H5Fflush(hf)
 
 H5Fclose(hf)
+
+
+## Reversing logarithm on the data downloaded from Xena HUB https://xenabrowser.net/datapages/?cohort=GTEX
+### FPKM data set
+hf = rhdf5::H5Fopen('/var/www/html/data/GTEx_V6.h5')
+afterLog = rhdf5::h5read(hf, '/toil-rsem/gene/fpkm-log2')
+beforeLog = (2^afterLog) - 0.001
+# #### Check for negative values
+# negs = beforeLog[beforeLog<0]
+# for (tol in c(1e-7, 1.5e-7, 1e-8) ) {
+#     print(paste("The number   of values <", -tol, ":", sum(negs< -tol)))
+#     print(paste("The fraction of values <", -tol, ":", sum(negs< -tol) / length(negs)*1.0))
+# }
+### Since all of the negative values are -1.0907E-8, it is safe to zero out all of them
+beforeLog[beforeLog<0] = 0
+rhdf5::h5writeDataset(beforeLog, hf, '/toil-rsem/gene/fpkm')
+H5Fflush(hf)
+
+### TPM data set
+afterLog = rhdf5::h5read(hf, '/toil-rsem/gene/tpm-log2')
+beforeLog = (2^afterLog) - 0.001
+rhdf5::h5writeDataset(beforeLog, hf, '/toil-rsem/gene/tpm')
+beforeLog[beforeLog<0] = 0
+rhdf5::h5writeDataset(beforeLog, hf, '/toil-rsem/gene/tpm')
+H5Fflush(hf)
+
+H5Fclose(hf)
