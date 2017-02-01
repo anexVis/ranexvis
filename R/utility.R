@@ -103,3 +103,13 @@ redisOpenSetClose <- function(key, value) {
     rredis::redisSet(key,value)
     rredis::redisClose()
 }
+
+
+#' fast cbind for data.table (about 30 times faster than cbind or cbind2)
+#'
+cbind.fast <- function(...) {
+    x = c(...)
+    data.table::setattr(x, "class", c("data.table", "data.frame"))
+    ans = .Call(data.table:::Calloccolwrapper, x, max(100L, ncol(x) + 64L), FALSE)
+    .Call(data.table:::Csetnamed, ans, 0L)
+}

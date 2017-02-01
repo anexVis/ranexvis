@@ -96,8 +96,9 @@ getSampleMetadataByGroup <- function(sampleGroups, sampleGrouping = "SMTS", db =
 #' Return a samples x genes expression matrix for correlation calculation
 #'
 #'@export
-getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", expect="json",read.from.redis=TRUE) {
-    sampleMeta = getSampleMetadata(db, cols=c("SAMPID", sampleGrouping), expect='datatable', read.from.redis=read.from.redis)
+getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS", sampleMetaFields=NULL,db = "gtex", processing="toil-rsem", unit="tpm", expect="json",read.from.redis=TRUE) {
+
+    sampleMeta = getSampleMetadata(db, cols=union(c("SAMPID", sampleGrouping), sampleMetaFields), expect='datatable', read.from.redis=read.from.redis)
 
     path2dataset = paste("/", processing, "/gene/", unit, sep="")
     if (read.from.redis) fullExprMatrix =  redisOpenGetClose(paste(path2dataset, "expressionMatrix", sep="/"))
@@ -117,7 +118,10 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     }
 
     tryCatch ({
-        exprMatrix = fullExprMatrix[rowidx,colidx]
+        if (!is.null(sampleMetaFields))
+            exprMatrix = cbind.fast(fullExprMatrix[rowidx,colidx],sampleList[rowidx,sampleMetaFields])
+        else
+            exprMatrix = fullExprMatrix[rowidx,colidx]
         if (expect=='datatable' || expect=='dt')  return(exprMatrix)
         else return(jsonlite::toJSON(exprMatrix))
     }, error = function(e) {
@@ -129,10 +133,11 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
 #' (This is a thin wrapper of getExpressionMatrix)
 #'
 #' @export
-getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
+getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMetaFields=NULL,db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
     expr = getGeneExpressionMatrix(genes = c(x,y),
                                         sampleGroups=sampleGroups,
                                         sampleGrouping=sampleGrouping,
+                                        sampleMetaFields=sampleMetaFields,
                                         db = db,
                                         processing=processing,
                                         unit = unit,

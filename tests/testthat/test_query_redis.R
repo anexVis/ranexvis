@@ -92,5 +92,55 @@ test_that("Retrieval of gene expression matrix.", {
                                   unit="tpm",
                                   expect='datatable'
                                   ), "No matching record found.")
+
+   expr3 =  getGeneExpressionMatrix(genes = selectedEnsembls,
+                                  sampleGroups=c("Brain", "Liver"),
+                                  sampleGrouping="SMTS",
+                                  sampleMetaFields=c("SMTS", "SMTSD"),
+                                  db = "gtex",
+                                  processing = "toil-rsem",
+                                  unit="tpm",
+                                  expect='datatable'
+                                  )
+   flog.info("Expression matrix with sample meta data:", expr3[1:10,], name='log', capture=TRUE)
+   expect_equal(ncol(expr3),length(selectedEnsembls) + 2)
+
+    expr3j =  getGeneExpressionMatrix(genes = selectedEnsembls,
+                                  sampleGroups=c("Brain", "Liver"),
+                                  sampleGrouping="SMTS",
+                                  sampleMetaFields=c("SMTS", "SMTSD"),
+                                  db = "gtex",
+                                  processing = "toil-rsem",
+                                  unit="tpm",
+                                  expect='json'
+                                  )
+   flog.info("Expression matrix with sample meta data, in JSON:", jsonlite::prettify(expr3j), name='log', capture=TRUE)
+})
+
+test_that("Retrieval of scatter data with sample meta data", {
+    expr_json = getScatterData(x = "ENSG00000176022.3",
+                               y = "ENSG00000027847.9",
+                               sampleGroups="Bladder",
+                               sampleGrouping="SMTSD",
+                               sampleMetaFields = c("SMTS", "SMTSD", "GENDER", "RACE"),
+                               db = "gtex",
+                               processing = "toil-rsem",
+                               unit="tpm",
+                               read.from.redis=TRUE
+    )
+   flog.info("Scatterplot data with sample meta data, in JSON:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
+})
+
+test_that("Retrieval of scatter data without sample meta data", {
+    expr_json = getScatterData(x = "ENSG00000176022.3",
+                               y = "ENSG00000027847.9",
+                               sampleGroups="Bladder",
+                               sampleGrouping="SMTSD",
+                               db = "gtex",
+                               processing = "toil-rsem",
+                               unit="tpm",
+                               read.from.redis=TRUE
+    )
+    flog.info("Scatterplot data without sample meta data, in JSON:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
 })
 
