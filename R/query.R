@@ -129,7 +129,8 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     })
 }
 
-#' Return ready-to-plot expression data for 2 genes
+#' Return ready-to-plot expression data for 2 genes,
+#' plus the metadata of each point, if specified
 #' (This is a thin wrapper of getExpressionMatrix)
 #'
 #' @export
@@ -144,10 +145,13 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMet
                                         expect='datatable',
                                         read.from.redis=read.from.redis
     )
-    labels = ensembl2hgnc(removeEnsemblVersion(c(x,y)))
+    dimensionLabels =
+    labels = c(ensembl2hgnc(removeEnsemblVersion(c(x,y))),sampleMetaFields)
     names(expr)[1:2] = c('x', 'y')
-    return(jsonlite::toJSON(list(xlabel=labels[[1]], ylabel=labels[[2]],data=expr)))
+    dimensions = data.frame(list(name=names(expr),label=labels))
+    return(jsonlite::toJSON(list(dimensions=dimensions,data=expr)))
 }
+
 
 #' Return a array of gene set, each item having the format as in the example:
 #' {name: 'HS synthetic enzymes', value: ['ENSG1', 'ENSG2',...]}
