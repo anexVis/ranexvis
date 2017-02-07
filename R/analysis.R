@@ -18,11 +18,14 @@ coexpression <- function(x, method="pearson",...) {
 #' This is a convenient wrapping of rglyvis::coexpression and rvislib::heatmap.adjacency
 #'
 #' @export
-coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,processing, unit,...) {
+coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,processing, unit,scale='log10',...) {
     exprMatrix = getGeneExpressionMatrix(genes = genes, sampleGroups = sampleGroups, sampleGrouping = sampleGrouping, db = db, processing = processing, unit = unit, expect='datatable')
     genes = colnames(exprMatrix)
 
-    corrMatrix = coexpression(exprMatrix, ...)
+    if (scale == 'log10')
+        corrMatrix = coexpression(log10(exprMatrix+0.001), ...)
+    else
+        corrMatrix = coexpression(exprMatrix,...)
     geneInputDt = data.table::data.table(genes)
     geneList = subset(getGeneList(db, expect="dt",withEnsemblVersion = FALSE), EnsemblID %in% genes)
     rownames(corrMatrix) = merge(geneInputDt, geneList, by.x="genes", by.y= "EnsemblID", all.x = TRUE, all.y = FALSE, sort=FALSE)[['HGNC']]
