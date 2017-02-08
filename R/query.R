@@ -118,12 +118,18 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
     }
 
     tryCatch ({
+        exprMatrix = fullExprMatrix[rowidx,colidx]
+        exprDTable = data.table::data.table(exprMatrix)
+        # 1-column matrix needs special treatment
+        if (class(exprMatrix) == 'numeric') {
+            names(exprDTable)[1] = removeEnsemblVersion(genes)[1]
+        }
         if (!is.null(sampleMetaFields))
-            exprMatrix = cbind.fast(fullExprMatrix[rowidx,colidx],sampleList[rowidx,sampleMetaFields])
-        else
-            exprMatrix = fullExprMatrix[rowidx,colidx]
-        if (expect=='datatable' || expect=='dt')  return(exprMatrix)
-        else return(jsonlite::toJSON(exprMatrix))
+            exprDTable= cbind.fast(exprDTable,sampleList[rowidx,sampleMetaFields])
+
+        if (expect=='datatable' || expect=='dt')  {
+            return(exprDTable)
+        } else return(jsonlite::toJSON(exprDTable))
     }, error = function(e) {
         print(e)
     })
@@ -131,11 +137,13 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
 
 #' Return ready-to-plot expression data for 2 genes,
 #' plus the metadata of each point, if specified
-#' (This is a thin wrapper of getExpressionMatrix)
+#' (This is a thin wrapper of getGeneExpressionMatrix)
 #'
 #' @export
 getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMetaFields=NULL,db = "gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE) {
-    expr = getGeneExpressionMatrix(genes = c(x,y),
+    if (x == y) genes = x
+    else genes = c(x,y)
+    expr = getGeneExpressionMatrix(genes = genes,
                                         sampleGroups=sampleGroups,
                                         sampleGrouping=sampleGrouping,
                                         sampleMetaFields=sampleMetaFields,
@@ -145,9 +153,16 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMet
                                         expect='datatable',
                                         read.from.redis=read.from.redis
     )
-    dimensionLabels =
-    labels = c(ensembl2hgnc(removeEnsemblVersion(c(x,y))),sampleMetaFields)
-    names(expr)[1:2] = c('x', 'y')
+
+    if (x == y) {
+        names(expr)[1] = 'x'
+        labels = c(ensembl2hgnc(removeEnsemblVersion(x)),sampleMetaFields)
+
+    } else {
+        names(expr)[1:2] = c('x', 'y')
+        labels = c(ensembl2hgnc(removeEnsemblVersion(c(x,y))),sampleMetaFields)
+    }
+
     dimensions = data.frame(list(name=names(expr),label=labels))
     return(jsonlite::toJSON(list(dimensions=dimensions,data=expr)))
 }
