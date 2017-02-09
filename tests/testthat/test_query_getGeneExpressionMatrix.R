@@ -6,6 +6,7 @@ test_that("Retrieval of gene expression matrix.", {
    # selectedGenes = c("HS3ST1", "HS3ST3B1")
    # selectedEnsembls = c("ENSG00000002587.5", "ENSG00000125430.4") # HS3ST1, HS3STB1
    selectedEnsembls = c("ENSG00000176022.3", "ENSG00000027847.9") # B3GALT6, B4GALT7
+   colNames = c("ENSG00000176022", "ENSG00000027847")
    # expect_error()   # when db/processing/unit are not found
 
    expr1 = getGeneExpressionMatrix(genes = selectedEnsembls,
@@ -16,13 +17,10 @@ test_that("Retrieval of gene expression matrix.", {
                                   unit="tpm",
                                   expect='datatable'
                                   )
-   expect_false(is.null(expr1))
-   expect_equal(ncol(expr1),2)
-
    ### Note that the returned matrix will have EnsemblID stripped off version number
-   expect_equal(colnames(expr1),removeEnsemblVersion(selectedEnsembls))
-   flog.info("Expression of 2 genes in the first 10 Brain samples:", expr1[1:10,], name='log', capture=TRUE)
+   expect_equal(names(expr1),colNames)
 
+   flog.info("Expression of 2 genes in the first 10 Brain samples:", expr1[1:10,], name='log', capture=TRUE)
 
    expr2 = getGeneExpressionMatrix(genes = selectedEnsembls,
                                   sampleGroups=c("Brain", "Liver"),
@@ -32,8 +30,8 @@ test_that("Retrieval of gene expression matrix.", {
                                   unit="tpm",
                                   expect='datatable'
                                   )
-   expect_equal(ncol(expr2),2)
-   expect_equal(colnames(expr1), colnames(expr2))
+   expect_equal(names(expr2),colNames)
+   expect_equal(names(expr1), names(expr2))
    expect_true(nrow(expr1) < nrow(expr2))
    expect_equal(nrow(expr1), 1146)  # 1146 brain samples
    expect_equal(cor(expr1,method="pearson")[1,1], 1)
@@ -62,7 +60,7 @@ test_that("Retrieval of gene expression matrix.", {
    expect_equal(ncol(expr3),length(selectedEnsembls) + 2)
 
     expr3j =  getGeneExpressionMatrix(genes = selectedEnsembls,
-                                  sampleGroups=c("Brain", "Liver"),
+                                  sampleGroups="Bladder",
                                   sampleGrouping="SMTS",
                                   sampleMetaFields=c("SMTS", "SMTSD"),
                                   db = "gtex",
@@ -88,7 +86,24 @@ test_that("Retrieval of expression matrix of single gene", {
    # flog.info("Expression matrix of single gene:", expr1, name='log', capture=TRUE)
 })
 
-test_that("Retrieval of expression matrix of single gene with metadata", {
+test_that("Retrieval of expression matrix of single gene with one-column metadata", {
+   expr1 =  getGeneExpressionMatrix(genes = "ENSG00000176022.3",
+                                  sampleGroups=c("Bladder"),
+                                  sampleGrouping="SMTS",
+                                  sampleMetaFields="SMTS",
+                                  db = "gtex",
+                                  processing = "toil-rsem",
+                                  unit="tpm",
+                                  expect='datatable',
+                                  read.from.redis = TRUE
+                                  )
+   expect_equal(names(expr1), c("ENSG00000176022", "SMTS"))
+
+   flog.info("Expression matrix of single gene with metadata:", expr1, name='log', capture=TRUE)
+})
+
+
+test_that("Retrieval of expression matrix of single gene with multiple-column metadata", {
    expr1 =  getGeneExpressionMatrix(genes = "ENSG00000176022.3",
                                   sampleGroups=c("Bladder"),
                                   sampleGrouping="SMTS",
@@ -96,17 +111,11 @@ test_that("Retrieval of expression matrix of single gene with metadata", {
                                   db = "gtex",
                                   processing = "toil-rsem",
                                   unit="tpm",
-                                  expect='datatable'
+                                  expect='datatable',
+                                  read.from.redis = TRUE
                                   )
    expect_equal(ncol(expr1), 3)
    expect_equal(names(expr1), c("ENSG00000176022", "SMTS", "SMTSD"))
 
-   # flog.info("Expression matrix of single gene with metadata:", expr1, name='log', capture=TRUE)
-
-   # names(expr1)[1] = 'x'
-   # flog.info("Expression matrix of single gene with metadata, column renamed: ", expr1, name='log', capture=TRUE)
-   # y = data.table::data.table(data.table::copy(expr1[,'x']))
-   # names(y) = 'y'
-   # expr2 = cbind.fast(expr1, y)
-   # flog.info("Expression matrix of single gene with metadata, x duplicated: ", expr2, name='log', capture=TRUE)
+   flog.info("Expression matrix of single gene with metadata:", expr1, name='log', capture=TRUE)
 })

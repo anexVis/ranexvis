@@ -121,12 +121,14 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
         exprMatrix = fullExprMatrix[rowidx,colidx]
         exprDTable = data.table::data.table(exprMatrix)
         # 1-column matrix needs special treatment
-        if (class(exprMatrix) == 'numeric') {
+        if (class(exprMatrix)[1] == 'numeric') {
             names(exprDTable)[1] = removeEnsemblVersion(genes)[1]
         }
-        if (!is.null(sampleMetaFields))
-            exprDTable= cbind.fast(exprDTable,sampleList[rowidx,sampleMetaFields])
-
+        if (!is.null(sampleMetaFields)) {
+            selectedSamples = (data.table::as.data.table(sampleList[rowidx, sampleMetaFields]))
+            names(selectedSamples) = sampleMetaFields
+            exprDTable= cbind.fast(exprDTable,selectedSamples)
+        }
         if (expect=='datatable' || expect=='dt')  {
             return(exprDTable)
         } else return(jsonlite::toJSON(exprDTable))
@@ -153,11 +155,13 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMet
                                         expect='datatable',
                                         read.from.redis=read.from.redis
     )
-
     if (x == y) {
+        print("before renaming")
+        print(expr)
         names(expr)[1] = 'x'
+        print("after renaming")
+        print(expr)
         labels = c(ensembl2hgnc(removeEnsemblVersion(x)),sampleMetaFields)
-
     } else {
         names(expr)[1:2] = c('x', 'y')
         labels = c(ensembl2hgnc(removeEnsemblVersion(c(x,y))),sampleMetaFields)
