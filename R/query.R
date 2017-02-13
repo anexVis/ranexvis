@@ -156,18 +156,18 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMet
                                         read.from.redis=read.from.redis
     )
     if (x == y) {
-        print("before renaming")
-        print(expr)
         names(expr)[1] = 'x'
-        print("after renaming")
-        print(expr)
         labels = c(ensembl2hgnc(removeEnsemblVersion(x)),sampleMetaFields)
+        dimensions = data.frame(list(name=names(expr),label=labels))
     } else {
-        names(expr)[1:2] = c('x', 'y')
-        labels = c(ensembl2hgnc(removeEnsemblVersion(c(x,y))),sampleMetaFields)
+        ensemblIds = removeEnsemblVersion(c(x,y))
+        labels = c(ensembl2hgnc(ensemblIds),sampleMetaFields)
+        names(expr)[1:2] = c('x', 'y')[match(names(expr[1:2]), ensemblIds)]
+        if (is.null(sampleMetaFields))
+            dimensions = data.frame(list(name=c('x', 'y'),label=labels))
+        else
+            dimensions = data.frame(list(name=c('x', 'y', names(expr)[3:ncol(expr)]),label=labels))
     }
-
-    dimensions = data.frame(list(name=names(expr),label=labels))
     return(jsonlite::toJSON(list(dimensions=dimensions,data=expr)))
 }
 

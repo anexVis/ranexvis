@@ -47,6 +47,29 @@ test_that("Retrieval of scatter data without sample meta data", {
                                unit="tpm",
                                read.from.redis=TRUE
     )
+    expr_obj1 = jsonlite::fromJSON(expr_json)
+
+    # Switch the order
+    expr_json = getScatterData(y = "ENSG00000176022.3",
+                               x = "ENSG00000027847.9",
+                               sampleGroups="Bladder",
+                               sampleGrouping="SMTSD",
+                               db = "gtex",
+                               processing = "toil-rsem",
+                               unit="tpm",
+                               read.from.redis=TRUE
+    )
+
+    expr_obj2 = jsonlite::fromJSON(expr_json)
+    expect_equal(expr_obj1$dimensions[['name']], c('x', 'y'))
+    expect_equal(expr_obj1$dimensions[['label']], c('B3GALT6', 'B4GALT7'))
+
+    expect_equal(expr_obj2$dimensions[['name']], c('x', 'y'))
+    expect_equal(expr_obj2$dimensions[['label']], c('B4GALT7', 'B3GALT6'))
+
+    expect_equal(expr_obj1$data[['x']], expr_obj2$data[['y']])
+    expect_equal(expr_obj1$data[['y']], expr_obj2$data[['x']])
+
     flog.info("Scatterplot data without sample meta data, in JSON:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
 })
 
@@ -60,6 +83,9 @@ test_that("Retrieval of scatter data of identical pair", {
                                unit="tpm",
                                read.from.redis=TRUE
     )
+    expr_obj = jsonlite::fromJSON(expr_json)
+    expect_equal(expr_obj$dimensions[['name']], 'x')
+    expect_equal(expr_obj$dimensions[['label']], 'B3GALT6')
     flog.info("Scatterplot data of identical pair, in JSON:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
 })
 
@@ -74,5 +100,7 @@ test_that("Retrieval of scatter data of identical pair with metadata", {
                                unit="tpm",
                                read.from.redis=TRUE
     )
+    expr_obj = jsonlite::fromJSON(expr_json)
+    expect_equal(expr_obj$dimensions[['name']], c('x', 'SMTSD'))
     flog.info("Scatterplot data of identical pair with metadata, in JSON:", jsonlite::prettify(expr_json), name='log', capture=TRUE)
 })
