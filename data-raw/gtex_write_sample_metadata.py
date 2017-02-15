@@ -29,7 +29,7 @@ dfile = h5py.File('/opt/DB/GTEx/GTEx_V6.h5', 'r+')
 metagrp = dfile['metadata']
 
 
-dset = metagrp.create_dataset("sample", (len(sarray),), np.dtype(types))
+dset = metagrp.create_dataset("sample-ontoterm", (len(sarray),), np.dtype(types))
 dset[...] = sarray
 
 for i in range(len(svarlist)):
