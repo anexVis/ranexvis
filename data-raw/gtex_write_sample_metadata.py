@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import h5py
 
-sinfo = pd.read_csv("/opt/DB//GTEx/GTEx_Analysis_V6_RNA-seq/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+sinfo = pd.read_csv("/opt/DB//GTEx/GTEx_Analysis_V6_RNA-seq/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS-fullMapping.txt",
                     sep='\t',header=0,
                    encoding='ascii')
 
