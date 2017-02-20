@@ -7,7 +7,10 @@ setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
     loadGeneSets(write.to.redis = write.to.redis, ctner=container)
     loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
-    loadExpressionData(genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container) # load everything will take about 30sec
+    # load everything will take about 30sec
+    loadExpressionData(db="gtex", processing = "broad", unit = "fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
+    loadExpressionData(db="gtex", processing = "toil-rsem", unit="fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
+    loadExpressionData(db="gtex", processing = "toil-rsem", unit="tpm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
     if (write.to.redis) message("Finished loading data to redis server")
 
     else {
