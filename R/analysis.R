@@ -28,7 +28,7 @@ coexpression.heatmap <- function(genes, sampleGroups, sampleGrouping, db,process
         corrMatrix = coexpression(exprMatrix,...)
     geneInputDt = data.table::data.table(genes)
     geneList = subset(getGeneList(db, expect="dt",withEnsemblVersion = FALSE), EnsemblID %in% genes)
-    rownames(corrMatrix) = merge(geneInputDt, geneList, by.x="genes", by.y= "EnsemblID", all.x = TRUE, all.y = FALSE, sort=FALSE)[['HGNC']]
-    return(rvislib::heatmap.adjacency(corrMatrix, add.colnames='name', add.rownames='label'))
+    colnames(corrMatrix) = merge(geneInputDt, geneList, by.x="genes", by.y= "EnsemblID", all.x = TRUE, all.y = FALSE, sort=FALSE)[['HGNC']]
+    return(rvislib::heatmap.adjacency(corrMatrix, add.colnames='label', add.rownames='name'))
 }
 

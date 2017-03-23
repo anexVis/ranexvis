@@ -131,7 +131,7 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
         }
         if (expect=='datatable' || expect=='dt')  {
             return(exprDTable)
-        } else return(jsonlite::toJSON(exprDTable))
+        } else return(jsonlite::toJSON(exprDTable, digits=I(8)))
     }, error = function(e) {
         print(e)
     })
@@ -168,7 +168,7 @@ getScatterData <- function(x,y, sampleGroups, sampleGrouping = "SMTS", sampleMet
         else
             dimensions = data.frame(list(name=c('x', 'y', names(expr)[3:ncol(expr)]),label=labels))
     }
-    return(jsonlite::toJSON(list(dimensions=dimensions,data=expr)))
+    return(jsonlite::toJSON(list(dimensions=dimensions,data=expr), digits=I(8)))
 }
 
 

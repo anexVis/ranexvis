@@ -61,3 +61,25 @@ rhdf5::h5writeDataset(beforeLog, hf, '/toil-rsem/gene/tpm')
 H5Fflush(hf)
 
 H5Fclose(hf)
+
+
+## Why the expression levels in TOIL-processed data seems to be assigned into discrete bins?
+## Such visually discrete data points should be expected for low expression levels.
+library(rglyvis)
+genes = c('ENSG00000002587', 'ENSG00000182601')   # HS3ST1, HS3ST4
+# mj = rglyvis::getGeneExpressionMatrix(genes=genes, sampleGroups=c("Nerve"), expect='json')
+# write(prettify(mj),file='test.json')
+m1 = getGeneExpressionMatrix(genes=genes, sampleGroups=c("Nerve"), expect='datatable')
+m2 = getGeneExpressionMatrix(genes=genes, sampleGroups=c("Blood"), expect='datatable')
+m3 = getGeneExpressionMatrix(genes=genes, sampleGroups=c("Liver"), expect='datatable')
+paste("Nerve tissue has", nrow(m1), "samples")
+count1 = table(m1$ENSG00000002587)
+count2 = table(m2$ENSG00000002587)
+same12 = intersect(m1$ENSG00000002587, m2$ENSG00000002587)
+same13 = intersect(m1$ENSG00000002587, m3$ENSG00000002587)
+same23 = intersect(m2$ENSG00000002587, m3$ENSG00000002587)
+same123 = intersect(same12, m3$ENSG00000002587)
+
+
+sameAB1= intersect(m1$ENSG00000002587, m1$ENSG00000182601)
+sameAB3= intersect(m3$ENSG00000002587, m3$ENSG00000182601)
