@@ -31,13 +31,10 @@ test_that("Retrieval of gene list.", {
     expect_equal(names(genelist) , c("EnsemblID", "HGNC"))
 })
 
-test_that("Retrieval of sample grouping list.", {
-   sampleGroupingList = getSampleGroupingList(expect='df')
-})
-
 test_that("Retrieval of sample metadata.", {
    sampleMetadata = getSampleMetadata("gtex", cols=c("SAMPID", "SMTS"), expect="dt")
    expect_equal(ncol(sampleMetadata), 2)
+   flog.info("Sample metadata (head): ", sampleMetadata[1:10,], name='log', capture = TRUE)
 })
 
 test_that("Retrieval of sample metadata with subject phenotype.", {
@@ -45,3 +42,11 @@ test_that("Retrieval of sample metadata with subject phenotype.", {
     sampleMetadata = getSampleMetadata("gtex", cols=fields, expect="dt")
     expect_equal(names(sampleMetadata), fields)
 })
+
+test_that("Retrieval of sample grouping list.", {
+   sampleGroupingList = getSampleGroupingList(expect='df',grouping='SMTS')
+   expect_equal(ncol(sampleGroupingList),1)
+   flog.info("Sample grouping list: ", dim(sampleGroupingList), name='log', capture = TRUE)
+   expect_true("Brain" %in% sampleGroupingList[,'SMTS'])
+})
+

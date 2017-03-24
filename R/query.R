@@ -27,11 +27,11 @@ getGeneList <- function(db="gtex",cols=c('EnsemblID', 'HGNC'), withEnsemblVersio
 #' getSampleGroupingList
 #'
 #' @param db the data set of interest: "gtex" is the only option available for now. For future development, db should be genomic feature annotation, such as genecode, or ensembl
-#' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID)
+#' @param grouping available values are: 'SMTS' (tissue type), 'SMTSD' (sampled site), 'SMUBRID' (Uberon ID). If not specified, 'SMTS' will be returned
 #' @export
 getSampleGroupingList <- function(db="gtex", grouping="SMTS", expect='json',read.from.redis=TRUE) {
-    if (read.from.redis) allmeta = redisOpenGetClose('sampleMetadata')
-    else  allmeta = get("sampleMetadata", envir=container)
+    if (read.from.redis) allmeta = redisOpenGetClose('sampleMetadataPhenotype')
+    else  allmeta = get("sampleMetadataPhenotype", envir=container)
     output = list()
     output[[grouping]] = unique(allmeta[[grouping]])
     if (expect == 'json') {
