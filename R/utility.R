@@ -57,9 +57,14 @@ ensembl2entrez <- function(ensemblIDs) {
 
 hgnc2ensembl <- function(hgnc_symbol) {
     # the var name will be made col name in data.table. keep it the same to merge
+    # TODO: integrate these data into local database
+    # ensembl servers usually broken
+    # HOTFIX: change host between main server and archive server
+    # www.ensembl.org
+    # oct2016.archive.ensembl.org
     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
                                dataset = 'hsapiens_gene_ensembl',
-                               host='www.ensembl.org')
+                               host='oct2016.archive.ensembl.org')
     rep_ensembl = biomaRt::getBM(attributes = c('ensembl_gene_id', 'hgnc_symbol', 'ucsc'),
                                  filter='hgnc_symbol', values=hgnc_symbol, mart=ensembl)
     ids = data.table::data.table(hgnc_symbol)
