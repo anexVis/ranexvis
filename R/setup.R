@@ -4,15 +4,27 @@ data(sysdata,envir=environment())
 #' Load several data sets into the memory and store it in the globally available `container`
 #'
 setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
-    loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
-    loadGeneSets(write.to.redis = write.to.redis, ctner=container)
-    loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
+    tryCatch({
+        loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
+    }, error= function(e) { message("loadGeneData failed"); stop(e) })
+    tryCatch({
+        loadGeneSets(write.to.redis = write.to.redis, ctner=container)
+    }, error = function(e) { message("loadGeneSets failed"); stop(e) }) 
+i   tryCatch({
+        loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
+    },error = function(e) { message("loadSampleMetadata failed"); stop(e) })
     # load everything will take about 30sec
-    loadExpressionData(db="gtex", processing = "broad", unit = "fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
-    loadExpressionData(db="gtex", processing = "toil-rsem", unit="fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
-    loadExpressionData(db="gtex", processing = "toil-rsem", unit="tpm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
-    if (write.to.redis) message("Finished loading data to redis server")
+    tryCatch({
+        loadExpressionData(db="gtex", processing = "broad", unit = "fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
+        loadExpressionData(db="gtex", processing = "toil-rsem", unit="fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
+        loadExpressionData(db="gtex", processing = "toil-rsem", unit="tpm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
+    },error = function(e) {
+        message("loadExpressionData failed")
+        stop(e)
+    
+    })
 
+    if (write.to.redis) message("Finished loading data to redis server")
     else {
         message("Finished loading data into container")
         print(container)
@@ -79,7 +91,7 @@ loadSampleMetadataWithSubjectPhenotype <- function(db='gtex', cols=NULL, write.t
     path2sample = paste("/metadata/sample")
     path2subject = paste("/metadata/subject")
     path2map = paste("/metadata/mapSubjectSample")
-    phenotypeFields = c("SUBJID","AGE", "GENDER", "ETHNCTY", "RACE", "HGHT", "HGHTU", "WGHT", "WGHTU", "BMI")
+    phenotypeFields = c("SUBJID","AGE", "GENDER", "ETHNCTY", "RACE")
 
     rhdf5::H5close()    # does it affect h5 object handles of other process/user?
     sample = data.table::data.table(rhdf5::h5read(dbpath[[db]], path2sample))
