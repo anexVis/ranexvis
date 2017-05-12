@@ -11,5 +11,6 @@ RoxygenNote: 5.0.1
 Imports: jsonlite,
     rhdf5,
     data.table,
+    rredis,
     rvislib
 Suggests: testthat
