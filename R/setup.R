@@ -10,7 +10,7 @@ setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     tryCatch({
         loadGeneSets(write.to.redis = write.to.redis, ctner=container)
     }, error = function(e) { message("loadGeneSets failed"); stop(e) }) 
-i   tryCatch({
+    tryCatch({
         loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
     },error = function(e) { message("loadSampleMetadata failed"); stop(e) })
     # load everything will take about 30sec
