@@ -80,7 +80,7 @@ hgnc2ensembl <- function(hgnc_symbol) {
 }
 
 
-ensembl2hgnc <- function(ensembl_id) {
+ensembl2hgnc.remote <- function(ensembl_id) {
     # the var name will be made col name in data.table. keep it the same to merge
     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
                                dataset = 'hsapiens_gene_ensembl',
@@ -92,6 +92,12 @@ ensembl2hgnc <- function(ensembl_id) {
     tmp = merge(ids, rep_ensembl, by='ensembl_gene_id', sort=FALSE)
     return(tmp[,2])
 }
+
+ensembl2hgnc <- function(ensembl_id) {
+    glist = redisOpenGetClose('geneList')
+    return(glist[removeEnsemblVersion(EnsemblID)==removeEnsemblVersion(ensembl_id),HGNC])
+}
+
 
 #' Wrapping around redisGet to use with OpenCPU
 #' Since each function call via OpenCPU does not
