@@ -5,6 +5,35 @@
     # oct2016.archive.ensembl.org
 ensemblHost = 'oct2016.archive.ensembl.org'
 
+#' Wrapping around redisGet to use with OpenCPU
+#' Since each function call via OpenCPU does not
+#' have access to redis connection created by other calls,
+#' this function is used to create a short-lived connection
+#' that will be closed immediately after value is retrieved
+#'
+redisOpenGetClose <- function(key) {
+    rredis::redisConnect()
+    val = rredis::redisGet(key)
+    rredis::redisClose()
+    return(val)
+}
+
+redisOpenSetClose <- function(key, value) {
+    rredis::redisConnect()
+    rredis::redisSet(key,value)
+    rredis::redisClose()
+}
+
+
+#' fast cbind for data.table (about 30 times faster than cbind or cbind2)
+#'
+cbind.fast <- function(...) {
+    x = c(...)
+    data.table::setattr(x, "class", c("data.table", "data.frame"))
+    ans = .Call(data.table:::Calloccolwrapper, x, max(100L, ncol(x) + 64L), FALSE)
+    .Call(data.table:::Csetnamed, ans, 0L)
+}
+
 #' Utility function to read a 1D array correctly from HDF5 file
 #'
 #' @param file path to HDF5 file
@@ -18,7 +47,7 @@ readCharacterArray <- function(file, path, colname=NULL) {
         output = list()
         output[[colname]] = charray
         return(data.frame(output))
-    }
+e   }
 }
 
 removeEnsemblVersion <- function(x) {
@@ -95,35 +124,11 @@ ensembl2hgnc.remote <- function(ensembl_id) {
 
 ensembl2hgnc <- function(ensembl_id) {
     glist = redisOpenGetClose('geneList')
-    return(glist[removeEnsemblVersion(EnsemblID)==removeEnsemblVersion(ensembl_id),HGNC])
+    glist[['EnsemblID']] = removeEnsemblVersion(glist[['EnsemblID']])
+    tmp = merge(data.frame(list(EnsemblID=ensembl_id)),
+                glist,
+                by="EnsemblID", all.x=TRUE,sort=FALSE)
+    return(tmp[['HGNC']])
 }
 
 
-#' Wrapping around redisGet to use with OpenCPU
-#' Since each function call via OpenCPU does not
-#' have access to redis connection created by other calls,
-#' this function is used to create a short-lived connection
-#' that will be closed immediately after value is retrieved
-#'
-redisOpenGetClose <- function(key) {
-    rredis::redisConnect()
-    val = rredis::redisGet(key)
-    rredis::redisClose()
-    return(val)
-}
-
-redisOpenSetClose <- function(key, value) {
-    rredis::redisConnect()
-    rredis::redisSet(key,value)
-    rredis::redisClose()
-}
-
-
-#' fast cbind for data.table (about 30 times faster than cbind or cbind2)
-#'
-cbind.fast <- function(...) {
-    x = c(...)
-    data.table::setattr(x, "class", c("data.table", "data.frame"))
-    ans = .Call(data.table:::Calloccolwrapper, x, max(100L, ncol(x) + 64L), FALSE)
-    .Call(data.table:::Csetnamed, ans, 0L)
-}

@@ -31,6 +31,3 @@ dbpath = list(gtex="/var/www/html/data/GTEx_V6-public.h5")
 container = new.env(parent=emptyenv())
 
 devtools::use_data(dbpath, container, geneSets, internal=TRUE, overwrite=TRUE)
-
-
-

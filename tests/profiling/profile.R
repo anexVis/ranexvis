@@ -18,5 +18,6 @@ prof_and_sum <- function(output, func, ...)  {
     sink()
 }
 
+start=proc.time()
 prof_and_sum('getScatterData', getScatterData,x = "ENSG00000176022",y="ENSG00000027847", sampleGroups="Brain", sampleGrouping="SMTS", sampleMetaFields=c("SMTS", "AGE", "SMTSD", "GENDER", "RACE", "ONTOTERM"), db="gtex", processing="toil-rsem", unit="tpm", read.from.redis=TRUE)
-
+duration=proc.time() - start
