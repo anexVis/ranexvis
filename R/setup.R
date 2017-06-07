@@ -4,15 +4,10 @@ data(sysdata,envir=environment())
 #' Load several data sets into the memory and store it in the globally available `container`
 #'
 setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
-    tryCatch({
-        loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
-    }, error= function(e) { message("loadGeneData failed"); stop(e) })
-    tryCatch({
-        loadGeneSets(write.to.redis = write.to.redis, ctner=container)
-    }, error = function(e) { message("loadGeneSets failed"); stop(e) }) 
-    tryCatch({
-        loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
-    },error = function(e) { message("loadSampleMetadata failed"); stop(e) })
+    loadGeneData(write.to.redis=write.to.redis, ctner=container, genes=genes)
+    loadGeneSets(write.to.redis = write.to.redis, ctner=container)
+    loadSampleMetadataWithSubjectPhenotype(write.to.redis=write.to.redis, ctner=container)
+
     # load everything will take about 30sec
     tryCatch({
         loadExpressionData(db="gtex", processing = "broad", unit = "fpkm", genes=genes, samples=samples,write.to.redis=write.to.redis, ctner=container)
@@ -21,7 +16,6 @@ setup <- function(genes=NULL, samples=NULL, write.to.redis=TRUE) {
     },error = function(e) {
         message("loadExpressionData failed")
         stop(e)
-    
     })
 
     if (write.to.redis) message("Finished loading data to redis server")

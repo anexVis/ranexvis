@@ -91,7 +91,7 @@ ensembl2entrez <- function(ensemblIDs) {
 #     return(tmp[,2])
 # }
 
-hgnc2ensembl <- function(hgnc_symbol) {
+hgnc2ensembl.remote <- function(hgnc_symbol) {
     # the var name will be made col name in data.table. keep it the same to merge
 
     ensembl = biomaRt::useMart("ENSEMBL_MART_ENSEMBL",
@@ -108,6 +108,14 @@ hgnc2ensembl <- function(hgnc_symbol) {
     return(unique(tmp[['ensembl_gene_id']]))
 }
 
+hgnc2ensembl <- function(hgnc_symbol) {
+    glist = redisOpenGetClose('geneList')
+    glist[['EnsemblID']] = removeEnsemblVersion(glist[['EnsemblID']])
+    tmp = merge(data.frame(list('HGNC'=hgnc_symbol)),
+                glist,
+                by="HGNC", all.x=TRUE,sort=FALSE)
+    return(tmp[['EnsemblID']])
+}
 
 ensembl2hgnc.remote <- function(ensembl_id) {
     # the var name will be made col name in data.table. keep it the same to merge
