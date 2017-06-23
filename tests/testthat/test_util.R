@@ -24,8 +24,9 @@ test_that("Ensembl gene IDs --> HGNC (local query)", {
     expect_equal(ensembl2hgnc(geneEnsembl), geneSymbol)
 })
 
-test_that("Ensembl gene IDs --> HGNC (remote query)", {
-    geneSymbol = c('HS3ST1', 'HS3ST3B1', 'B3GALT6', 'B4GALT7')
-    geneEnsembl = c("ENSG00000002587", "ENSG00000125430", "ENSG00000176022", "ENSG00000027847")
-    expect_equal(ensembl2hgnc.remote(geneEnsembl), geneSymbol)
-})
+## Disable remote query
+# test_that("Ensembl gene IDs --> HGNC (remote query)", {
+#     geneSymbol = c('HS3ST1', 'HS3ST3B1', 'B3GALT6', 'B4GALT7')
+#     geneEnsembl = c("ENSG00000002587", "ENSG00000125430", "ENSG00000176022", "ENSG00000027847")
+#     expect_equal(ensembl2hgnc.remote(geneEnsembl), geneSymbol)
+# })
