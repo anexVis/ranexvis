@@ -47,7 +47,7 @@ readCharacterArray <- function(file, path, colname=NULL) {
         output = list()
         output[[colname]] = charray
         return(data.frame(output))
-e   }
+   }
 }
 
 removeEnsemblVersion <- function(x) {
