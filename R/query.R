@@ -131,9 +131,9 @@ getGeneExpressionMatrix  <- function(genes, sampleGroups, sampleGrouping = "SMTS
         }
         if (expect=='datatable' || expect=='dt')  {
             return(exprDTable)
-        } else return(jsonlite::toJSON(exprDTable, digits=I(8)))
+        } else return(jsonlite::toJSON(exprDTable, digits=I(8),force = TRUE))
     }, error = function(e) {
-        print(e)
+        stop(paste("Error in getGeneExpressionMatrix:", e))
     })
 }
 

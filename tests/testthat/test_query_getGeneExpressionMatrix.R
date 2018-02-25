@@ -119,3 +119,17 @@ test_that("Retrieval of expression matrix of single gene with multiple-column me
 
    flog.info("Expression matrix of single gene with metadata:", expr1, name='log', capture=TRUE)
 })
+
+test_that("Retrieval of non-existent expression matrix", {
+    expr0 = getGeneExpressionMatrix(genes = "ENSG0000017",
+                                  sampleGroups=c("Bladder"),
+                                  sampleGrouping="SMTS",
+                                  sampleMetaFields=c("SMTS", "SMTSD"),
+                                  db = "gtex",
+                                  processing = "toil-rsem",
+                                  unit="tpm",
+                                  expect='datatable',
+                                  read.from.redis = TRUE
+                                  )
+    expect_equal(expr0,NULL)
+})
